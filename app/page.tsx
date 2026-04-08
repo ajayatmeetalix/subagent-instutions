@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { format } from "date-fns"
-import { Home, Briefcase, FileText, Trash2, Users, Building2, Copy, ChevronRight, ArrowLeft, Download, Plus, Menu, RefreshCw, User, CreditCard, DollarSign, Lock, Clipboard, UserCircle, BarChart3, FileCheck, UserPlus, CircleDollarSign, MousePointer, FolderOpen, Search, Edit, Folder, Grid, Upload, FolderPlus, MoreVertical, Trash, Edit2, X, File, CheckCircle, Image, FileImage, FolderInput, Eye, CalendarDays, Clock, CheckCircle2, AlertCircle, Loader2, AlertTriangle, Ban, ChevronDown } from "lucide-react"
+import { Home, Briefcase, FileText, Trash2, Users, Building2, Copy, ChevronRight, ArrowLeft, Download, Plus, Menu, RefreshCw, User, CreditCard, DollarSign, Lock, Clipboard, UserCircle, BarChart3, FileCheck, UserPlus, CircleDollarSign, MousePointer, FolderOpen, Search, Edit, Folder, Grid, Upload, FolderPlus, MoreVertical, Trash, Edit2, X, File, CheckCircle, Image, FileImage, FolderInput, Eye, CalendarDays, Clock, CheckCircle2, AlertCircle, Loader2, AlertTriangle, Ban, ChevronDown, ClipboardList, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -176,6 +176,29 @@ const JOBS_BOARD_TASKS = [
       { id: 7, text: "Mark complete. This triggers DETERMINE the legal administration path." },
     ],
   },
+  {
+    id: "t3",
+    slug: "generate_probate_plan",
+    title: "Generate Probate Plan",
+    assignee: "MitchStage OlivetoStage",
+    assigneeEmail: "mitch+stag...",
+    reviewer: "delaney.haley@meetalix.com",
+    createdAt: "Apr 8, 2026 9:00 AM",
+    updatedAt: "Apr 8, 2026 9:00 AM",
+    status: "todo",
+    priority: "",
+    jobVersion: 1,
+    jobId: "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+    steps: { done: 0, total: 5 },
+    description: "The legal path has been determined. SAUL will synthesize the approved asset classification and legal path determination to generate a comprehensive, track-by-track estate settlement plan. Review the plan, mark any inapplicable actions, and approve to activate all downstream work.",
+    stepItems: [
+      { id: 1, text: "Run SAUL to generate the settlement plan based on approved asset classification and legal path." },
+      { id: 2, text: "Review the missed deadline flag and note any required immediate actions." },
+      { id: 3, text: "Review the action plan for each track: Probate, Trust, SEA, and Non-probate." },
+      { id: 4, text: "Mark any actions as Not Applicable that do not apply to this estate (reason required)." },
+      { id: 5, text: "Approve the plan to activate all downstream filing and administration jobs." },
+    ],
+  },
   { id: "c1", slug: "review_new_settlement_starting_point", title: "New Settlement Created - Please review", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 2:40 PM", updatedAt: "Apr 6, 2026 2:40 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 3, total: 3 }, description: "", stepItems: [] },
   { id: "c2", slug: "notify_the_va_of_the_decedent", title: "Notify the VA of the Decedent's Passing", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 3:14 PM", updatedAt: "Apr 6, 2026 3:14 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 3, total: 3 }, description: "", stepItems: [] },
   { id: "c3", slug: "define_plan_for_probate_lawyer", title: "Define plan for probate lawyer engagement", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 3:18 PM", updatedAt: "Apr 6, 2026 3:18 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 2, total: 2 }, description: "", stepItems: [] },
@@ -261,7 +284,82 @@ const SAUL_LEGAL_PATH_RESPONSE = {
   },
 }
 
+const SAUL_PROBATE_PLAN_RESPONSE = {
+  estate_summary: {
+    estate_name: "Estate of Microsoft Zune",
+    approved_path: "PROBATE_INDEPENDENT_ADMINISTRATION",
+    parallel_tracks: ["TRUST_ADMINISTRATION", "SMALL_ESTATE_AFFIDAVIT", "NON_PROBATE"],
+    probate_estate_value: 485000,
+    total_assets: 10,
+    probate_assets: 6,
+    non_probate_assets: 4,
+    jurisdiction: "California",
+    summary: "This estate requires formal probate under Independent Administration of Estates Act (IAEA). Six assets totaling $485,000 must pass through probate. Four assets transfer outside probate: the Family Home via trust administration, the Kia Soul via DMV REG 5, and life insurance and retirement accounts to named beneficiaries. There is one missed deadline requiring immediate attention.",
+  },
+  plan: {
+    tracks: [
+      {
+        track: "PROBATE",
+        label: "Probate — Independent Administration",
+        description: "Formal probate required for 6 assets. IAEA authority allows independent action on most matters without court approval.",
+        actions: [
+          { id: "p1", description: "Lodge original will with the Superior Court.", deadline: "MISSED — was due Jun 14, 2025", required_forms: [], status: "overdue", note: "Court may impose penalties under §8200. Address before filing probate petition." },
+          { id: "p2", description: "File Petition for Probate (DE-111) with the Superior Court.", deadline: "As soon as practicable", required_forms: ["DE-111"], status: "pending" },
+          { id: "p3", description: "Publish Notice of Petition to Administer Estate in a newspaper of general circulation.", deadline: "Before hearing date", required_forms: [], status: "pending" },
+          { id: "p4", description: "Attend probate hearing and obtain Letters Testamentary.", deadline: "Per court scheduling", required_forms: [], status: "pending" },
+          { id: "p5", description: "Notify all known creditors of estate administration.", deadline: "30 days from Letters issuance", required_forms: [], status: "pending" },
+          { id: "p6", description: "File Inventory and Appraisal of all probate assets (DE-160, DE-161). Probate referee will appraise: Income Property Apartment, Trading Account, Primary Savings Account, Rental Income, Money Owed to Decedent, Art Collection.", deadline: "4 months from Letters issuance", required_forms: ["DE-160", "DE-161"], status: "pending" },
+          { id: "p7", description: "File Change in Ownership Statement (BOE-502-D) for Income Property Apartment.", deadline: "2025-10-12", required_forms: ["BOE-502-D"], status: "pending" },
+          { id: "p8", description: "Pay validated debts and expenses from estate operating account.", deadline: "After creditor claim period closes (4 months from first publication)", required_forms: [], status: "pending" },
+          { id: "p9", description: "File Petition for Final Distribution (DE-295) and accounting.", deadline: "After creditor period and all claims resolved", required_forms: ["DE-295"], status: "pending" },
+        ],
+      },
+      {
+        track: "TRUST_ADMINISTRATION",
+        label: "Trust administration",
+        description: "Family Home is trust-held and transfers outside probate via trust administration.",
+        actions: [
+          { id: "t1", description: "Send Notice to Trust Beneficiaries per Probate Code §16061.7.", deadline: "60 days from date of death", required_forms: [], status: "pending" },
+          { id: "t2", description: "Obtain date-of-death valuation for Family Home for tax purposes.", deadline: "As soon as practicable", required_forms: [], status: "pending" },
+          { id: "t3", description: "Distribute Family Home to trust beneficiaries per trust terms.", deadline: "After §16061.7 notice period (120 days)", required_forms: [], status: "pending" },
+        ],
+      },
+      {
+        track: "SMALL_ESTATE_AFFIDAVIT",
+        label: "Small estate affidavit — vehicle",
+        description: "Vehicle (Kia Soul) qualifies for DMV REG 5 transfer, excluded from the probate estate.",
+        actions: [
+          { id: "s1", description: "Complete DMV Form REG 5 to transfer Vehicle (Kia Soul) to successor.", deadline: "40 days from date of death", required_forms: ["REG 5"], status: "pending" },
+        ],
+      },
+      {
+        track: "NON_PROBATE",
+        label: "Non-probate transfers",
+        description: "Life Insurance and Retirement Account (401k) transfer directly to named beneficiaries outside probate.",
+        actions: [
+          { id: "n1", description: "File death benefit claim with State Farm for Life Insurance. Beneficiary receives proceeds directly.", deadline: "As soon as practicable", required_forms: ["DEATH_CERTIFICATE"], status: "pending" },
+          { id: "n2", description: "Contact Fidelity with certified death certificate to initiate Retirement Account (401k) transfer to named beneficiary.", deadline: "As soon as practicable", required_forms: ["DEATH_CERTIFICATE"], status: "pending" },
+        ],
+      },
+    ],
+    sequencing_notes: [
+      "Probate track: p1 (lodge will) → p2 (petition) → p3 (publish notice) → p4 (hearing + Letters) → p5 and p6 run in parallel after Letters issue → p8 after creditor period closes → p9 final distribution.",
+      "Trust track runs independently of probate. t1 notice period (120 days) must clear before t3 distribution.",
+      "SEA and Non-probate tracks can begin immediately — no dependency on probate Letters.",
+    ],
+    flags: [
+      { type: "MISSED_DEADLINE", description: "Lodge original will with court was due Jun 14, 2025. Court may impose penalties under §8200. Address before filing probate petition.", severity: "HIGH" },
+    ],
+    blocked_paths: [
+      { procedure: "Small Estate Affidavit §13100 (full estate)", reason: "Probate estate value ($485,000) exceeds SEA threshold ($184,500)." },
+      { procedure: "Spousal Property Petition (§13500)", reason: "No surviving spouse." },
+      { procedure: "Spousal Wage Affidavit", reason: "No surviving spouse." },
+    ],
+  },
+}
+
 const LEGAL_PATH_CONFIG: Record<string, { label: string; bg: string; text: string; border: string }> = {
+  PROBATE: { label: "Probate", bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200" },
   PROBATE_INDEPENDENT_ADMINISTRATION: { label: "Probate — Independent Administration", bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200" },
   PROBATE_SUPERVISED: { label: "Probate — Supervised", bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200" },
   TRUST_ADMINISTRATION: { label: "Trust administration", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
@@ -289,12 +387,16 @@ export default function EstateManagementPage() {
   const [classificationData, setClassificationData] = useState<typeof SAUL_CLASSIFICATION_RESPONSE | null>(null)
   const [bucketOverrides, setBucketOverrides] = useState<Record<number, string>>({})
   const [overrideReasons, setOverrideReasons] = useState<Record<number, string>>({})
-  const [taskVisibility, setTaskVisibility] = useState<Record<string, boolean>>({ t1: false })
+  const [taskVisibility, setTaskVisibility] = useState<Record<string, boolean>>({ t1: false, t3: false })
   const [taskStatuses, setTaskStatuses] = useState<Record<string, string>>({})
   const [legalPathState, setLegalPathState] = useState<"idle" | "loading" | "review" | "approved">("idle")
   const [legalPathData, setLegalPathData] = useState<typeof SAUL_LEGAL_PATH_RESPONSE | null>(null)
   const [legalPathOverride, setLegalPathOverride] = useState<string | null>(null)
   const [legalPathOverrideReason, setLegalPathOverrideReason] = useState("")
+  const [probatePlanState, setProbatePlanState] = useState<"idle" | "loading" | "review" | "approved">("idle")
+  const [probatePlanData, setProbatePlanData] = useState<typeof SAUL_PROBATE_PLAN_RESPONSE | null>(null)
+  const [naActions, setNaActions] = useState<Record<string, boolean>>({})
+  const [naReasons, setNaReasons] = useState<Record<string, string>>({})
 
   const resetClassificationState = () => {
     setClassificationState("idle")
@@ -342,6 +444,31 @@ export default function EstateManagementPage() {
       setTaskModalOpen(false)
       resetLegalPathState()
       setTaskStatuses(prev => ({ ...prev, t1: "completed" }))
+      setTaskVisibility(prev => ({ ...prev, t3: true }))
+    }, 2000)
+  }
+
+  const resetProbatePlanState = () => {
+    setProbatePlanState("idle")
+    setProbatePlanData(null)
+    setNaActions({})
+    setNaReasons({})
+  }
+
+  const handleRunProbatePlan = () => {
+    setProbatePlanState("loading")
+    setTimeout(() => {
+      setProbatePlanData(SAUL_PROBATE_PLAN_RESPONSE)
+      setProbatePlanState("review")
+    }, 2500)
+  }
+
+  const handleApproveProbatePlan = () => {
+    setProbatePlanState("approved")
+    setTimeout(() => {
+      setTaskModalOpen(false)
+      resetProbatePlanState()
+      setTaskStatuses(prev => ({ ...prev, t3: "completed" }))
     }, 2000)
   }
 
@@ -3455,6 +3582,192 @@ export default function EstateManagementPage() {
                                   </div>
                                 )}
                               </>
+                            ) : task.slug === "generate_probate_plan" ? (
+                              <>
+                                {/* Description (always visible) */}
+                                {task.description && (
+                                  <div>
+                                    <h3 className="text-sm font-semibold text-[#3d3d3d] mb-3">Description</h3>
+                                    <p className="text-sm text-[#4a4a4a] leading-relaxed">{task.description}</p>
+                                  </div>
+                                )}
+
+                                {/* IDLE state */}
+                                {probatePlanState === "idle" && (
+                                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <ClipboardList className="w-4 h-4 text-[#7c6fc4]" />
+                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Settlement Plan Generation</h3>
+                                    </div>
+                                    <p className="text-sm text-[#6b675f] mb-4">SAUL will synthesize the asset classification and legal path determination to generate a complete settlement plan.</p>
+                                    <Button
+                                      onClick={handleRunProbatePlan}
+                                      className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
+                                    >
+                                      Generate probate plan
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {/* LOADING state */}
+                                {probatePlanState === "loading" && (
+                                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <ClipboardList className="w-4 h-4 text-[#7c6fc4]" />
+                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Settlement Plan Generation</h3>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-4">
+                                      <Loader2 className="w-5 h-5 text-[#7c6fc4] animate-spin" />
+                                      <span className="text-sm text-[#6b675f]">SAUL is generating the settlement plan...</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* REVIEW state */}
+                                {probatePlanState === "review" && probatePlanData && (() => {
+                                  const { estate_summary, plan } = probatePlanData
+                                  const approvedPathCfg = LEGAL_PATH_CONFIG[estate_summary.approved_path] ?? LEGAL_PATH_CONFIG.PROBATE_INDEPENDENT_ADMINISTRATION
+                                  const highFlags = plan.flags.filter(f => f.severity === "HIGH")
+                                  const totalActions = plan.tracks.reduce((sum, tr) => sum + tr.actions.length, 0)
+
+                                  return (
+                                    <>
+                                      {/* Section 1 — Missed deadline flags */}
+                                      {highFlags.length > 0 && (
+                                        <div className="space-y-2">
+                                          {highFlags.map((flag, i) => (
+                                            <div key={i} className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                                              <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                                              <p className="text-sm text-amber-800">{flag.description}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Section 2 — Estate summary card */}
+                                      <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg px-5 py-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                          <h4 className="text-sm font-semibold text-[#3d3d3d]">{estate_summary.estate_name}</h4>
+                                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border ${approvedPathCfg.bg} ${approvedPathCfg.text} ${approvedPathCfg.border}`}>
+                                            {approvedPathCfg.label}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-xs text-[#6b675f] mb-3">
+                                          <span className="font-medium text-[#3d3d3d]">${estate_summary.probate_estate_value.toLocaleString()}</span>
+                                          <span className="text-[#d0d0d0]">&middot;</span>
+                                          <span>{estate_summary.probate_assets} probate</span>
+                                          <span className="text-[#d0d0d0]">&middot;</span>
+                                          <span>{estate_summary.non_probate_assets} non-probate</span>
+                                          <span className="text-[#d0d0d0]">&middot;</span>
+                                          <span>{plan.tracks.length} tracks</span>
+                                        </div>
+                                        <p className="text-sm text-[#6b675f] leading-relaxed">{estate_summary.summary}</p>
+                                      </div>
+
+                                      {/* Section 3 — Action plan by track */}
+                                      <div className="space-y-5">
+                                        <h4 className="text-xs font-semibold text-[#9b9b9b] uppercase tracking-wider">Action plan by track</h4>
+                                        {plan.tracks.map((track, ti) => {
+                                          const trackCfg = LEGAL_PATH_CONFIG[track.track] ?? LEGAL_PATH_CONFIG.PROBATE
+                                          return (
+                                            <div key={ti} className="border border-[#e5e5e5] rounded-lg overflow-hidden">
+                                              <div className={`flex items-center gap-2 px-4 py-3 border-b border-[#e5e5e5] ${trackCfg.bg}`}>
+                                                <span className={`text-xs font-semibold ${trackCfg.text}`}>{track.label}</span>
+                                              </div>
+                                              <p className="text-xs text-[#6b675f] px-4 py-2 bg-white border-b border-[#f0f0f0]">{track.description}</p>
+                                              <div className="divide-y divide-[#f0f0f0]">
+                                                {track.actions.map((action) => {
+                                                  const isOverdue = action.status === "overdue"
+                                                  const isNa = !!naActions[action.id]
+                                                  return (
+                                                    <div
+                                                      key={action.id}
+                                                      className={`px-4 py-3 bg-white ${isOverdue ? "border-l-2 border-red-400" : ""} ${isNa ? "opacity-50" : ""}`}
+                                                    >
+                                                      <div className="flex items-start justify-between gap-3">
+                                                        <p className="text-sm text-[#3d3d3d] leading-relaxed flex-1">{action.description}</p>
+                                                        <button
+                                                          onClick={() => {
+                                                            setNaActions(prev => ({ ...prev, [action.id]: !prev[action.id] }))
+                                                            if (naActions[action.id]) {
+                                                              setNaReasons(prev => { const next = { ...prev }; delete next[action.id]; return next })
+                                                            }
+                                                          }}
+                                                          className={`shrink-0 text-xs px-2 py-1 rounded border transition-colors ${isNa ? "bg-gray-100 border-gray-300 text-gray-500" : "bg-white border-[#d0d0d0] text-[#6b675f] hover:bg-[#f8f7f5]"}`}
+                                                        >
+                                                          {isNa ? "Revert" : "Mark N/A"}
+                                                        </button>
+                                                      </div>
+                                                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                                        <span className={`text-xs px-2 py-0.5 rounded ${isOverdue ? "bg-red-50 text-red-600 font-medium" : "bg-gray-100 text-[#6b675f]"}`}>
+                                                          {action.deadline}
+                                                        </span>
+                                                        {action.required_forms.map((form, fi) => (
+                                                          <span key={fi} className="text-xs px-2 py-0.5 rounded bg-gray-100 text-[#6b675f] font-mono">{form}</span>
+                                                        ))}
+                                                      </div>
+                                                      {isNa && (
+                                                        <div className="mt-2">
+                                                          <label className="block text-xs text-[#9b9b9b] mb-1">Why is this action not applicable? <span className="text-red-500">*</span></label>
+                                                          <Input
+                                                            value={naReasons[action.id] ?? ""}
+                                                            onChange={e => setNaReasons(prev => ({ ...prev, [action.id]: e.target.value }))}
+                                                            placeholder="Enter reason..."
+                                                            className={`h-8 text-sm ${!(naReasons[action.id] ?? "").trim() ? "border-red-300 focus:border-red-400" : "border-[#e5e5e5]"}`}
+                                                          />
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )
+                                                })}
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+
+                                      {/* Section 4 — Sequencing notes */}
+                                      <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg px-5 py-4">
+                                        <div className="flex items-center gap-2 mb-3">
+                                          <ArrowRight className="w-4 h-4 text-[#9b9b9b]" />
+                                          <h4 className="text-xs font-semibold text-[#9b9b9b] uppercase tracking-wider">Sequencing notes</h4>
+                                        </div>
+                                        <ul className="space-y-2">
+                                          {plan.sequencing_notes.map((note, i) => (
+                                            <li key={i} className="text-sm text-[#6b675f] leading-relaxed">{note}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+
+                                      {/* Blocked paths */}
+                                      {plan.blocked_paths.length > 0 && (
+                                        <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg px-5 py-4">
+                                          <div className="flex items-center gap-2 mb-3">
+                                            <Ban className="w-4 h-4 text-[#9b9b9b]" />
+                                            <h4 className="text-xs font-semibold text-[#9b9b9b] uppercase tracking-wider">Blocked paths</h4>
+                                          </div>
+                                          <div className="space-y-1.5">
+                                            {plan.blocked_paths.map((bp, i) => (
+                                              <p key={i} className="text-sm text-[#6b675f]">
+                                                <span className="font-medium text-[#3d3d3d]">{bp.procedure}</span> — {bp.reason}
+                                              </p>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )
+                                })()}
+
+                                {/* APPROVED state */}
+                                {probatePlanState === "approved" && (
+                                  <div className="flex flex-col items-center justify-center py-16">
+                                    <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
+                                    <h3 className="text-lg font-semibold text-[#3d3d3d] mb-1">Settlement plan approved</h3>
+                                    <p className="text-sm text-[#9b9b9b]">Closing...</p>
+                                  </div>
+                                )}
+                              </>
                             ) : (
                               <>
                                 {/* Description */}
@@ -3691,10 +4004,42 @@ export default function EstateManagementPage() {
                               </div>
                             )}
                           </>
+                        ) : task.slug === "generate_probate_plan" ? (
+                          <>
+                            {probatePlanState === "approved" ? null : probatePlanState === "review" && probatePlanData ? (
+                              <div className="flex items-center justify-between px-8 py-4 border-t border-[#f0f0f0]">
+                                <div className="flex items-center gap-1.5 text-xs text-[#6b675f]">
+                                  <span>{probatePlanData.plan.tracks.reduce((sum, tr) => sum + tr.actions.length, 0)} actions across {probatePlanData.plan.tracks.length} tracks</span>
+                                  {probatePlanData.plan.flags.length > 0 && (
+                                    <>
+                                      <span className="text-[#d0d0d0]">&middot;</span>
+                                      <span>{probatePlanData.plan.flags.length} flag{probatePlanData.plan.flags.length !== 1 ? "s" : ""}</span>
+                                    </>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={handleApproveProbatePlan}
+                                  disabled={Object.keys(naActions).some(id => naActions[id] && !(naReasons[id] ?? "").trim())}
+                                  className="bg-[#1a1a2e] hover:bg-[#2d2d4e] text-white h-9 px-5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Approve plan &rarr;
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
+                                <Button
+                                  onClick={() => { setTaskModalOpen(false); resetProbatePlanState(); }}
+                                  className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
                             <Button
-                              onClick={() => { setTaskModalOpen(false); resetClassificationState(); resetLegalPathState(); }}
+                              onClick={() => { setTaskModalOpen(false); resetClassificationState(); resetLegalPathState(); resetProbatePlanState(); }}
                               className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
                             >
                               Cancel
