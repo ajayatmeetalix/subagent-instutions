@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { format } from "date-fns"
 import { Home, Briefcase, FileText, Trash2, Users, Building2, Copy, ChevronRight, ArrowLeft, Download, Plus, Menu, RefreshCw, User, CreditCard, DollarSign, Lock, Clipboard, UserCircle, BarChart3, FileCheck, UserPlus, CircleDollarSign, MousePointer, FolderOpen, Search, Edit, Folder, Grid, Upload, FolderPlus, MoreVertical, Trash, Edit2, X, File, CheckCircle, Image, FileImage, FolderInput, Eye, CalendarDays, Clock, CheckCircle2, AlertCircle, Loader2, AlertTriangle, Ban, ChevronDown, ClipboardList, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -128,8 +128,8 @@ const DEADLINE_CATEGORIES = [
 const JOBS_BOARD_TASKS = [
   {
     id: "t1",
-    slug: "determine_the_path_of_legal_administration_applicable_to_the_decedent",
-    title: "Determine the Legal Administration Path",
+    slug: "validate_legal_administration_path",
+    title: "Validate Legal Administration Path",
     assignee: "MitchStage OlivetoStage",
     assigneeEmail: "mitch+stag...",
     reviewer: "delaney.haley@meetalix.com",
@@ -140,21 +140,19 @@ const JOBS_BOARD_TASKS = [
     jobVersion: 1,
     jobId: "5e3f6a3a-d183-4d04-830b-f70be6ff0a6e",
     steps: { done: 0, total: 7 },
-    description: "Determine the Legal Administration Path — KYC is complete — it's time to set the legal path for this estate. Review the uploaded documents, confirm the estate's key characteristics (gross value, asset types, jurisdiction, whether a trust or will exists), and select the correct administration path. Your selection here activates all the downstream work for this estate.",
+    description: "The legal administration path is ready for your review. SAUL has evaluated the estate's asset values against jurisdiction thresholds and recommended the correct legal path. Review the threshold evaluation and SAUL's recommendation, override if needed, and approve to proceed to plan generation.",
     stepItems: [
-      { id: 1, text: "Open Box and confirm all required documents are uploaded: death certificate, will (if applicable), asset list, and debt list." },
-      { id: 2, text: "Review the estate's gross value, asset types, and whether a valid will exists." },
-      { id: 3, text: "Identify the decedent's state of domicile and whether any out-of-state real property requires ancillary probate." },
-      { id: 4, text: "Cross-reference the estate's characteristics against the jurisdiction's administration thresholds (e.g., does it qualify for SEA?)." },
-      { id: 5, text: "Select the applicable legal path(s) — Probate, SEA, Trust, or Ancillary — in the Legal Path field in Estate Manager." },
-      { id: 6, text: "Add any relevant notes about your determination in the job notes field." },
-      { id: 7, text: "Create the 'Determine Legal Path' milestone in the Estate Timeline, then mark this job complete." },
+      { id: 1, text: "Review the threshold evaluation — probate estate value vs. SEA threshold." },
+      { id: 2, text: "Review the recommended primary path and SAUL's rationale." },
+      { id: 3, text: "Review the parallel tracks that will run alongside probate." },
+      { id: 4, text: "Override the primary path if SAUL's determination is incorrect — a reason is required." },
+      { id: 5, text: "Approve the legal path to trigger probate plan generation." },
     ],
   },
   {
     id: "t2",
-    slug: "confirm_asset_classification",
-    title: "Confirm Asset Classification",
+    slug: "validate_asset_classification",
+    title: "Validate Asset Classification",
     assignee: "MitchStage OlivetoStage",
     assigneeEmail: "mitch+stag...",
     reviewer: "delaney.haley@meetalix.com",
@@ -165,21 +163,20 @@ const JOBS_BOARD_TASKS = [
     jobVersion: 1,
     jobId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     steps: { done: 0, total: 7 },
-    description: "All assets for this estate have been discovered and their titling information confirmed. Review the asset list and verify that every asset has a transfer mechanism recorded — POD/TOD designation, joint tenancy, trust funding status, or none. Once confirmed, marking this job complete signals to the legal team that the estate is ready for legal path determination.",
+    description: "The asset classification is ready for your review. SAUL has classified each estate asset into a transfer bucket based on titling, ownership structure, and beneficiary designations. Review the results, confirm or override any bucket, and approve to proceed to legal path determination.",
     stepItems: [
-      { id: 1, text: "Open the Assets tab in Estate Manager. Review every asset on the record." },
-      { id: 2, text: "Confirm each financial account has a POD/TOD status recorded. If any account is still marked Unknown, return the relevant Obtain POD/TOD job to In Progress before proceeding." },
-      { id: 3, text: "Confirm each real property asset has deed type and titling documented (joint tenancy, community property, sole ownership, trust-held, etc.). Pull the deed from Box if needed." },
-      { id: 4, text: "Confirm each vehicle has title status recorded. Verify DMV REG 5 eligibility if applicable." },
-      { id: 5, text: "Confirm any life insurance policies have beneficiary designation status recorded." },
-      { id: 6, text: "Confirm there are no assets in unknown transfer status remaining on the record." },
-      { id: 7, text: "Mark complete. This triggers DETERMINE the legal administration path." },
+      { id: 1, text: "Review SAUL's classification for each asset. Check the bucket, rationale, and confidence score." },
+      { id: 2, text: "For any unvalidated assets (missing titling data), note that the classification is provisional." },
+      { id: 3, text: "Override any bucket where SAUL's determination is incorrect — a reason is required per override." },
+      { id: 4, text: "Use '+ Add and re-classify asset' if any estate assets are missing from the list." },
+      { id: 5, text: "Confirm the blocked paths section reflects what you know about this estate." },
+      { id: 6, text: "Approve classification to trigger legal path determination." },
     ],
   },
   {
     id: "t3",
-    slug: "generate_probate_plan",
-    title: "Generate Probate Plan",
+    slug: "validate_probate_plan",
+    title: "Validate Probate Plan",
     assignee: "MitchStage OlivetoStage",
     assigneeEmail: "mitch+stag...",
     reviewer: "delaney.haley@meetalix.com",
@@ -190,13 +187,34 @@ const JOBS_BOARD_TASKS = [
     jobVersion: 1,
     jobId: "b2c3d4e5-f6a7-8901-bcde-f23456789012",
     steps: { done: 0, total: 5 },
-    description: "The legal path has been determined. SAUL will synthesize the approved asset classification and legal path determination to generate a comprehensive, track-by-track estate settlement plan. Review the plan, mark any inapplicable actions, and approve to activate all downstream work.",
+    description: "The settlement plan is ready for your review. SAUL has synthesized the approved asset classifications and legal path to generate a comprehensive, track-by-track estate settlement plan. Review all required actions, mark any inapplicable steps as N/A with a reason, and approve to activate all downstream work.",
     stepItems: [
-      { id: 1, text: "Run SAUL to generate the settlement plan based on approved asset classification and legal path." },
-      { id: 2, text: "Review the missed deadline flag and note any required immediate actions." },
-      { id: 3, text: "Review the action plan for each track: Probate, Trust, SEA, and Non-probate." },
-      { id: 4, text: "Mark any actions as Not Applicable that do not apply to this estate (reason required)." },
+      { id: 1, text: "Review the missed deadline flag and note any immediate actions required." },
+      { id: 2, text: "Review the estate summary — approved path, probate value, asset breakdown." },
+      { id: 3, text: "Review each track's action plan: Probate, Trust, SEA, and Non-probate." },
+      { id: 4, text: "Mark any actions as N/A that don't apply to this estate — a reason is required per action." },
       { id: 5, text: "Approve the plan to activate all downstream filing and administration jobs." },
+    ],
+  },
+  {
+    id: "t4",
+    slug: "revalidate_asset_classification",
+    title: "Re-validate Asset Classification",
+    assignee: "MitchStage OlivetoStage",
+    assigneeEmail: "mitch+stag...",
+    reviewer: "delaney.haley@meetalix.com",
+    createdAt: "Apr 8, 2026 9:00 AM",
+    updatedAt: "Apr 8, 2026 9:00 AM",
+    status: "todo",
+    priority: "",
+    jobVersion: 1,
+    jobId: "c4d5e6f7-a8b9-0123-cdef-456789012345",
+    steps: { done: 0, total: 3 },
+    description: "A new asset was identified after initial classification was approved. SAUL has re-classified the asset. Review the result, override if needed, and approve to update the estate record.",
+    stepItems: [
+      { id: 1, text: "Review SAUL's classification for the newly identified asset." },
+      { id: 2, text: "Override the bucket if SAUL's determination is incorrect — a reason is required." },
+      { id: 3, text: "Approve to update the classification record." },
     ],
   },
   { id: "c1", slug: "review_new_settlement_starting_point", title: "New Settlement Created - Please review", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 2:40 PM", updatedAt: "Apr 6, 2026 2:40 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 3, total: 3 }, description: "", stepItems: [] },
@@ -207,16 +225,16 @@ const JOBS_BOARD_TASKS = [
 const SAUL_CLASSIFICATION_RESPONSE = {
   classification: {
     assets: [
-      { asset: "Income Property Apartment", bucket: "PROBATE", reason: "Sole ownership real estate requires probate for transfer.", confidence: 0.95 },
-      { asset: "Trading Account", bucket: "PROBATE", reason: "Brokerage account without POD/TOD designation requires probate.", confidence: 0.88 },
-      { asset: "Primary Savings Account", bucket: "PROBATE", reason: "Savings account without POD/TOD designation requires probate.", confidence: 0.88 },
-      { asset: "Rental income from 22 University", bucket: "PROBATE", reason: "Income received after death is part of the probate estate.", confidence: 0.72 },
-      { asset: "Money Owed to Decedent", bucket: "PROBATE", reason: "Unvalidated money owed is part of the probate estate.", confidence: 0.61 },
-      { asset: "Family Home", bucket: "TRUST", reason: "Property owned by a trust is transferred through trust administration.", confidence: 0.97 },
-      { asset: "Art Collection", bucket: "PROBATE", reason: "Personal property exceeding SEA threshold requires probate.", confidence: 0.74 },
-      { asset: "Vehicle (Kia Soul)", bucket: "SMALL_ESTATE_AFFIDAVIT", reason: "Vehicle can be transferred using DMV REG 5 without probate.", confidence: 0.93 },
-      { asset: "Life Insurance", bucket: "POD_TOD", reason: "Life insurance with a named beneficiary transfers directly to the named beneficiary outside probate.", confidence: 0.96 },
-      { asset: "Retirement Account (401k)", bucket: "POD_TOD", reason: "Retirement account with a named beneficiary transfers directly outside probate.", confidence: 0.96 },
+      { asset: "Income Property Apartment", bucket: "PROBATE", reason: "Sole ownership real estate requires probate for transfer.", confidence: 0.95, validated: true },
+      { asset: "Trading Account", bucket: "PROBATE", reason: "Brokerage account without POD/TOD designation requires probate.", confidence: 0.88, validated: true },
+      { asset: "Primary Savings Account", bucket: "PROBATE", reason: "Savings account without POD/TOD designation requires probate.", confidence: 0.88, validated: true },
+      { asset: "Rental income from 22 University", bucket: "PROBATE", reason: "Income received after death is part of the probate estate.", confidence: 0.72, validated: false, validation_note: "Classification may change when titling is confirmed." },
+      { asset: "Money Owed to Decedent", bucket: "PROBATE", reason: "Unvalidated money owed is part of the probate estate.", confidence: 0.61, validated: false, validation_note: "Classification may change when titling is confirmed." },
+      { asset: "Family Home", bucket: "TRUST", reason: "Property owned by a trust is transferred through trust administration.", confidence: 0.97, validated: true },
+      { asset: "Art Collection", bucket: "PROBATE", reason: "Personal property exceeding SEA threshold requires probate.", confidence: 0.74, validated: true },
+      { asset: "Vehicle (Kia Soul)", bucket: "SMALL_ESTATE_AFFIDAVIT", reason: "Vehicle can be transferred using DMV REG 5 without probate.", confidence: 0.93, validated: true },
+      { asset: "Life Insurance", bucket: "POD_TOD", reason: "Life insurance with a named beneficiary transfers directly to the named beneficiary outside probate.", confidence: 0.96, validated: true },
+      { asset: "Retirement Account (401k)", bucket: "POD_TOD", reason: "Retirement account with a named beneficiary transfers directly outside probate.", confidence: 0.96, validated: true },
     ],
   },
   plan: {
@@ -246,6 +264,7 @@ const BUCKET_CONFIG: Record<string, { label: string; bg: string; text: string; b
   COMMUNITY_PROPERTY: { label: "Community property", bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
   JOINT_TENANCY: { label: "Joint tenancy", bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
   SPOUSAL_TRANSFER: { label: "Spousal transfer", bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
+  UNVALIDATED: { label: "Unvalidated — provisional", bg: "bg-gray-50", text: "text-gray-400", border: "border-gray-200" },
 }
 
 const BUCKET_OPTIONS = ["PROBATE", "TRUST", "SMALL_ESTATE_AFFIDAVIT", "POD_TOD", "COMMUNITY_PROPERTY", "JOINT_TENANCY", "SPOUSAL_TRANSFER"]
@@ -358,6 +377,15 @@ const SAUL_PROBATE_PLAN_RESPONSE = {
   },
 }
 
+const SAUL_REVALIDATE_ASSET = {
+  asset: "Checking Account — Wells Fargo",
+  bucket: "PROBATE",
+  reason: "Bank account without POD/TOD designation requires probate.",
+  confidence: 0.85,
+  validated: true,
+  isNew: true,
+}
+
 const LEGAL_PATH_CONFIG: Record<string, { label: string; bg: string; text: string; border: string }> = {
   PROBATE: { label: "Probate", bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200" },
   PROBATE_INDEPENDENT_ADMINISTRATION: { label: "Probate — Independent Administration", bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200" },
@@ -383,94 +411,129 @@ export default function EstateManagementPage() {
   const [taskStepChecked, setTaskStepChecked] = useState<Record<string, boolean>>({})
   const [taskModalTab, setTaskModalTab] = useState<"conversations" | "history">("conversations")
   const [taskComment, setTaskComment] = useState("")
-  const [classificationState, setClassificationState] = useState<"idle" | "loading" | "review" | "approved">("idle")
+  const [taskProcessing, setTaskProcessing] = useState<Record<string, boolean>>({ t2: true })
+  const [taskError, setTaskError] = useState<Record<string, string | null>>({})
   const [classificationData, setClassificationData] = useState<typeof SAUL_CLASSIFICATION_RESPONSE | null>(null)
+  const [classificationApproved, setClassificationApproved] = useState(false)
   const [bucketOverrides, setBucketOverrides] = useState<Record<number, string>>({})
   const [overrideReasons, setOverrideReasons] = useState<Record<number, string>>({})
-  const [taskVisibility, setTaskVisibility] = useState<Record<string, boolean>>({ t1: false, t3: false })
+  const [refreshingAssets, setRefreshingAssets] = useState(false)
+  const [newClassifiedAssets, setNewClassifiedAssets] = useState<Array<{ asset: string; bucket: string; reason: string; confidence: number; validated: boolean; isNew: boolean }>>([])
+  const [t4Ready, setT4Ready] = useState(false)
+  const [t4Approved, setT4Approved] = useState(false)
+  const [taskVisibility, setTaskVisibility] = useState<Record<string, boolean>>({ t1: false, t3: false, t4: false })
   const [taskStatuses, setTaskStatuses] = useState<Record<string, string>>({})
-  const [legalPathState, setLegalPathState] = useState<"idle" | "loading" | "review" | "approved">("idle")
   const [legalPathData, setLegalPathData] = useState<typeof SAUL_LEGAL_PATH_RESPONSE | null>(null)
+  const [legalPathApproved, setLegalPathApproved] = useState(false)
   const [legalPathOverride, setLegalPathOverride] = useState<string | null>(null)
   const [legalPathOverrideReason, setLegalPathOverrideReason] = useState("")
-  const [probatePlanState, setProbatePlanState] = useState<"idle" | "loading" | "review" | "approved">("idle")
   const [probatePlanData, setProbatePlanData] = useState<typeof SAUL_PROBATE_PLAN_RESPONSE | null>(null)
+  const [probatePlanApproved, setProbatePlanApproved] = useState(false)
   const [naActions, setNaActions] = useState<Record<string, boolean>>({})
   const [naReasons, setNaReasons] = useState<Record<string, string>>({})
 
-  const resetClassificationState = () => {
-    setClassificationState("idle")
-    setClassificationData(null)
+  const SAUL_ERROR_MESSAGES: Record<string, string> = {
+    t2: "Classification failed — 2 assets are missing titling status: Money Owed to Decedent, Rental income from 22 University. Update these assets and retry.",
+    t1: "Legal path evaluation failed — threshold data could not be retrieved for this jurisdiction. Retry or contact support.",
+    t3: "Plan generation failed — could not retrieve required forms data for California probate. Retry or contact support.",
+    t4: "Re-classification failed — could not process the new asset. Retry or contact support.",
+  }
+
+  const saulStartedRef = useRef<Set<string>>(new Set())
+
+  const startSaulForTask = (taskId: string) => {
+    setTaskProcessing(prev => ({ ...prev, [taskId]: true }))
+    setTaskError(prev => ({ ...prev, [taskId]: null }))
+    setTimeout(() => {
+      if (Math.random() < 0.1) {
+        setTaskError(prev => ({ ...prev, [taskId]: SAUL_ERROR_MESSAGES[taskId] ?? "An unexpected error occurred. Retry or contact support." }))
+        setTaskProcessing(prev => ({ ...prev, [taskId]: false }))
+      } else {
+        if (taskId === "t2") setClassificationData(SAUL_CLASSIFICATION_RESPONSE)
+        if (taskId === "t1") setLegalPathData(SAUL_LEGAL_PATH_RESPONSE)
+        if (taskId === "t3") setProbatePlanData(SAUL_PROBATE_PLAN_RESPONSE)
+        if (taskId === "t4") setT4Ready(true)
+        setTaskProcessing(prev => ({ ...prev, [taskId]: false }))
+      }
+    }, 2500)
+  }
+
+  const handleRetryTask = (taskId: string) => {
+    setTaskError(prev => ({ ...prev, [taskId]: null }))
+    startSaulForTask(taskId)
+  }
+
+  const openTaskModal = (taskId: string) => {
+    setTaskModalId(taskId)
+    setTaskModalOpen(true)
     setBucketOverrides({})
     setOverrideReasons({})
-  }
-
-  const resetLegalPathState = () => {
-    setLegalPathState("idle")
-    setLegalPathData(null)
+    setClassificationApproved(false)
+    setRefreshingAssets(false)
+    setNewClassifiedAssets([])
+    setT4Approved(false)
     setLegalPathOverride(null)
     setLegalPathOverrideReason("")
-  }
-
-  const handleRunClassification = () => {
-    setClassificationState("loading")
-    setTimeout(() => {
-      setClassificationData(SAUL_CLASSIFICATION_RESPONSE)
-      setClassificationState("review")
-    }, 2500)
+    setLegalPathApproved(false)
+    setNaActions({})
+    setNaReasons({})
+    setProbatePlanApproved(false)
   }
 
   const handleApproveClassification = () => {
-    setClassificationState("approved")
+    setClassificationApproved(true)
     setTimeout(() => {
       setTaskModalOpen(false)
-      resetClassificationState()
+      setClassificationApproved(false)
       setTaskStatuses(prev => ({ ...prev, t2: "completed" }))
       setTaskVisibility(prev => ({ ...prev, t1: true }))
+      startSaulForTask("t1")
     }, 2000)
-  }
-
-  const handleRunLegalPath = () => {
-    setLegalPathState("loading")
-    setTimeout(() => {
-      setLegalPathData(SAUL_LEGAL_PATH_RESPONSE)
-      setLegalPathState("review")
-    }, 2500)
   }
 
   const handleApproveLegalPath = () => {
-    setLegalPathState("approved")
+    setLegalPathApproved(true)
     setTimeout(() => {
       setTaskModalOpen(false)
-      resetLegalPathState()
+      setLegalPathApproved(false)
       setTaskStatuses(prev => ({ ...prev, t1: "completed" }))
       setTaskVisibility(prev => ({ ...prev, t3: true }))
+      startSaulForTask("t3")
     }, 2000)
-  }
-
-  const resetProbatePlanState = () => {
-    setProbatePlanState("idle")
-    setProbatePlanData(null)
-    setNaActions({})
-    setNaReasons({})
-  }
-
-  const handleRunProbatePlan = () => {
-    setProbatePlanState("loading")
-    setTimeout(() => {
-      setProbatePlanData(SAUL_PROBATE_PLAN_RESPONSE)
-      setProbatePlanState("review")
-    }, 2500)
   }
 
   const handleApproveProbatePlan = () => {
-    setProbatePlanState("approved")
+    setProbatePlanApproved(true)
     setTimeout(() => {
       setTaskModalOpen(false)
-      resetProbatePlanState()
+      setProbatePlanApproved(false)
       setTaskStatuses(prev => ({ ...prev, t3: "completed" }))
     }, 2000)
   }
+
+  const handleRefreshAssets = () => {
+    setRefreshingAssets(true)
+    setTimeout(() => {
+      setNewClassifiedAssets([{ ...SAUL_REVALIDATE_ASSET }])
+      setRefreshingAssets(false)
+    }, 1500)
+  }
+
+  const handleApproveT4 = () => {
+    setT4Approved(true)
+    setTimeout(() => {
+      setTaskModalOpen(false)
+      setT4Approved(false)
+      setTaskStatuses(prev => ({ ...prev, t4: "completed" }))
+    }, 2000)
+  }
+
+  useEffect(() => {
+    if (saulStartedRef.current.has("t2")) return
+    saulStartedRef.current.add("t2")
+    const timer = setTimeout(() => startSaulForTask("t2"), 1000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const [currentFolder, setCurrentFolder] = useState<string | null>(null)
   const [folders, setFolders] = useState<Record<string, Array<{ name: string; modified: string }>>>({
@@ -3183,47 +3246,65 @@ export default function EstateManagementPage() {
                     const awaitingTasks = filtered.filter(t => t.status === "awaiting-review")
                     const completedTasks = filtered.filter(t => t.status === "completed")
 
-                    const TaskCard = ({ task }: { task: typeof JOBS_BOARD_TASKS[0] }) => (
-                      <div
-                        className="bg-white rounded-lg border border-[#e5e5e5] p-4 hover:border-[#c0bcb6] hover:shadow-sm transition-all cursor-pointer"
-                        onClick={() => { setTaskModalId(task.id); setTaskModalOpen(true); resetClassificationState(); resetLegalPathState(); }}
-                      >
-                        <p className="text-[10px] text-[#9b9b9b] font-mono mb-1.5 leading-tight truncate">{task.slug}</p>
-                        <p className="text-sm font-semibold text-[#3d3d3d] mb-3 leading-snug">{task.title}</p>
-                        {task.steps && (
-                          <div className="mb-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] text-[#6b675f]">{task.steps.done} / {task.steps.total} steps completed</span>
-                            </div>
-                            <div className="h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: task.steps.total > 0 ? `${(task.steps.done / task.steps.total) * 100}%` : "0%",
-                                  backgroundColor: task.steps.done === task.steps.total && task.steps.total > 0 ? "#22c55e" : "#7c6fc4"
-                                }}
-                              />
-                            </div>
+                    const TaskCard = ({ task }: { task: typeof JOBS_BOARD_TASKS[0] }) => {
+                      const isProcessing = taskProcessing[task.id]
+                      const hasError = !!taskError[task.id]
+                      return (
+                        <div
+                          className="bg-white rounded-lg border border-[#e5e5e5] p-4 hover:border-[#c0bcb6] hover:shadow-sm transition-all cursor-pointer"
+                          onClick={() => openTaskModal(task.id)}
+                        >
+                          <p className="text-[10px] text-[#9b9b9b] font-mono mb-1.5 leading-tight truncate">{task.slug}</p>
+                          <div className="flex items-start justify-between gap-2 mb-3">
+                            <p className="text-sm font-semibold text-[#3d3d3d] leading-snug">{task.title}</p>
+                            {isProcessing && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                Processing
+                              </span>
+                            )}
+                            {hasError && !isProcessing && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 shrink-0">
+                                <AlertCircle className="w-2.5 h-2.5" />
+                                Error
+                              </span>
+                            )}
                           </div>
-                        )}
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <User className="w-3.5 h-3.5 text-[#9b9b9b]" />
-                          <span className="text-[11px] text-[#6b675f]">{task.assignee}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-[#9b9b9b]" />
-                            <span className="text-[11px] text-[#6b675f]">{task.createdAt}</span>
+                          {task.steps && (
+                            <div className="mb-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[11px] text-[#6b675f]">{task.steps.done} / {task.steps.total} steps completed</span>
+                              </div>
+                              <div className="h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: task.steps.total > 0 ? `${(task.steps.done / task.steps.total) * 100}%` : "0%",
+                                    backgroundColor: task.steps.done === task.steps.total && task.steps.total > 0 ? "#22c55e" : "#7c6fc4"
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <User className="w-3.5 h-3.5 text-[#9b9b9b]" />
+                            <span className="text-[11px] text-[#6b675f]">{task.assignee}</span>
                           </div>
-                          <button
-                            className="text-[11px] text-[#7c6fc4] hover:text-[#5a4fa0] flex items-center gap-0.5 font-medium"
-                            onClick={e => { e.stopPropagation(); setTaskModalId(task.id); setTaskModalOpen(true); resetClassificationState(); resetLegalPathState(); }}
-                          >
-                            View estate <ChevronRight className="w-3 h-3" />
-                          </button>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 text-[#9b9b9b]" />
+                              <span className="text-[11px] text-[#6b675f]">{task.createdAt}</span>
+                            </div>
+                            <button
+                              className="text-[11px] text-[#7c6fc4] hover:text-[#5a4fa0] flex items-center gap-0.5 font-medium"
+                              onClick={e => { e.stopPropagation(); openTaskModal(task.id) }}
+                            >
+                              View estate <ChevronRight className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )
+                      )
+                    }
 
                     const Column = ({ title, tasks, badgeColor }: { title: string; tasks: typeof JOBS_BOARD_TASKS; badgeColor: string }) => (
                       <div className="flex flex-col w-72 flex-shrink-0">
@@ -3258,7 +3339,7 @@ export default function EstateManagementPage() {
                   const task = JOBS_BOARD_TASKS.find(t => t.id === taskModalId)
                   if (!task) return null
                   return (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => { setTaskModalOpen(false); resetClassificationState(); resetLegalPathState(); }}>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setTaskModalOpen(false)}>
                       <div
                         className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden"
                         onClick={e => e.stopPropagation()}
@@ -3269,7 +3350,7 @@ export default function EstateManagementPage() {
                             <p className="text-[11px] text-[#9b9b9b] font-mono mb-1">{task.slug}</p>
                             <h2 className="text-xl font-bold text-[#1a1a2e]">{task.title}</h2>
                           </div>
-                          <button onClick={() => { setTaskModalOpen(false); resetClassificationState(); resetLegalPathState(); }} className="text-[#9b9b9b] hover:text-[#3d3d3d] ml-4 mt-1">
+                          <button onClick={() => setTaskModalOpen(false)} className="text-[#9b9b9b] hover:text-[#3d3d3d] ml-4 mt-1">
                             <X className="w-5 h-5" />
                           </button>
                         </div>
@@ -3278,7 +3359,7 @@ export default function EstateManagementPage() {
                         <div className="flex flex-1 overflow-hidden">
                           {/* Left panel */}
                           <div className="flex-1 overflow-auto px-8 py-6 space-y-8">
-                            {task.slug === "confirm_asset_classification" ? (
+                            {task.slug === "validate_asset_classification" ? (
                               <>
                                 {/* Description (always visible) */}
                                 {task.description && (
@@ -3288,25 +3369,8 @@ export default function EstateManagementPage() {
                                   </div>
                                 )}
 
-                                {/* IDLE state */}
-                                {classificationState === "idle" && (
-                                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <BarChart3 className="w-4 h-4 text-[#7c6fc4]" />
-                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Asset Classification</h3>
-                                    </div>
-                                    <p className="text-sm text-[#6b675f] mb-4">Run SAUL to automatically classify all estate assets into transfer buckets.</p>
-                                    <Button
-                                      onClick={handleRunClassification}
-                                      className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
-                                    >
-                                      Run classification
-                                    </Button>
-                                  </div>
-                                )}
-
-                                {/* LOADING state */}
-                                {classificationState === "loading" && (
+                                {/* PROCESSING state */}
+                                {taskProcessing[task.id] && (
                                   <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
                                     <div className="flex items-center gap-2 mb-2">
                                       <BarChart3 className="w-4 h-4 text-[#7c6fc4]" />
@@ -3316,13 +3380,26 @@ export default function EstateManagementPage() {
                                       <Loader2 className="w-5 h-5 text-[#7c6fc4] animate-spin" />
                                       <span className="text-sm text-[#6b675f]">SAUL is classifying assets...</span>
                                     </div>
+                                    <p className="text-xs text-[#9b9b9b] mt-3">This usually takes a few seconds. We'll update this card when it's ready to review.</p>
+                                  </div>
+                                )}
+
+                                {/* ERROR state */}
+                                {taskError[task.id] && !taskProcessing[task.id] && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+                                    <div className="flex items-start gap-3">
+                                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-red-800 mb-1">Classification failed</h4>
+                                        <p className="text-sm text-red-700">{taskError[task.id]}</p>
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
 
                                 {/* REVIEW state */}
-                                {classificationState === "review" && classificationData && (() => {
-                                  const assets = classificationData.classification.assets
-                                  const flags = classificationData.plan.flags
+                                {!taskProcessing[task.id] && !taskError[task.id] && classificationData && !classificationApproved && (() => {
+                                  const allAssets = [...classificationData.classification.assets, ...newClassifiedAssets]
                                   const blockedPaths = classificationData.plan.blocked_paths
                                   return (
                                     <>
@@ -3346,14 +3423,14 @@ export default function EstateManagementPage() {
                                       {/* Asset table */}
                                       <div>
                                         <div className="border border-[#e5e5e5] rounded-lg overflow-hidden">
-                                          {/* Table header */}
                                           <div className="grid grid-cols-[1fr_140px_90px] gap-2 px-4 py-2.5 bg-[#fafafa] border-b border-[#e5e5e5]">
                                             <span className="text-[10px] font-semibold text-[#9b9b9b] uppercase tracking-wider">Asset</span>
                                             <span className="text-[10px] font-semibold text-[#9b9b9b] uppercase tracking-wider">Bucket</span>
                                             <span className="text-[10px] font-semibold text-[#9b9b9b] uppercase tracking-wider">Confidence</span>
                                           </div>
-                                          {/* Table rows */}
-                                          {assets.map((asset, idx) => {
+                                          {allAssets.map((asset, idx) => {
+                                            const isUnvalidated = (asset as { validated?: boolean }).validated === false
+                                            const isNew = (asset as { isNew?: boolean }).isNew === true
                                             const effectiveBucket = bucketOverrides[idx] ?? asset.bucket
                                             const bucketCfg = BUCKET_CONFIG[effectiveBucket] ?? BUCKET_CONFIG.PROBATE
                                             const isOverridden = idx in bucketOverrides
@@ -3361,13 +3438,24 @@ export default function EstateManagementPage() {
                                             const confidenceLevel = asset.confidence >= 0.90 ? "high" : asset.confidence >= 0.70 ? "medium" : "low"
                                             const confidenceColor = confidenceLevel === "high" ? "bg-green-500" : confidenceLevel === "medium" ? "bg-amber-400" : "bg-red-500"
                                             const confidenceLabel = confidenceLevel === "high" ? "High" : confidenceLevel === "medium" ? "Medium" : "Low"
-
+                                            const rowBg = isUnvalidated ? "bg-gray-50/60" : isLowConfidence ? "bg-red-50/40" : ""
                                             return (
                                               <div key={idx}>
-                                                <div className={`grid grid-cols-[1fr_140px_90px] gap-2 px-4 py-3 border-b border-[#f0f0f0] items-start ${isLowConfidence ? "bg-red-50/40" : ""}`}>
+                                                <div className={`grid grid-cols-[1fr_140px_90px] gap-2 px-4 py-3 border-b border-[#f0f0f0] items-start ${rowBg}`}>
                                                   <div>
-                                                    <span className="text-sm text-[#3d3d3d] font-medium">{asset.asset}</span>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                      <span className="text-sm text-[#3d3d3d] font-medium">{asset.asset}</span>
+                                                      {isUnvalidated && (
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-400 border border-gray-200">Unvalidated — provisional</span>
+                                                      )}
+                                                      {isNew && (
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">New — needs review</span>
+                                                      )}
+                                                    </div>
                                                     <p className="text-xs text-[#9b9b9b] leading-relaxed mt-0.5">{asset.reason}</p>
+                                                    {isUnvalidated && (asset as { validation_note?: string }).validation_note && (
+                                                      <p className="text-xs text-gray-400 mt-0.5 italic">{(asset as { validation_note?: string }).validation_note}</p>
+                                                    )}
                                                   </div>
                                                   <div>
                                                     <div className={`relative inline-flex items-center rounded-md ${bucketCfg.bg} border ${bucketCfg.border}`}>
@@ -3396,7 +3484,6 @@ export default function EstateManagementPage() {
                                                     <span className={`text-xs ${confidenceLevel === "low" ? "text-red-600 font-medium" : "text-[#6b675f]"}`}>{confidenceLabel}</span>
                                                   </div>
                                                 </div>
-                                                {/* Override reason input */}
                                                 {isOverridden && (
                                                   <div className="px-4 py-3 bg-[#fafafa] border-b border-[#f0f0f0]">
                                                     <label className="block text-xs text-[#9b9b9b] mb-1.5">Why are you changing this classification? <span className="text-red-500">*</span></label>
@@ -3412,13 +3499,37 @@ export default function EstateManagementPage() {
                                             )
                                           })}
                                         </div>
+
+                                        {/* Refresh assets */}
+                                        <div className="mt-3 flex items-center gap-3">
+                                          {refreshingAssets ? (
+                                            <div className="flex items-center gap-2 text-sm text-[#6b675f]">
+                                              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#7c6fc4]" />
+                                              SAUL is refreshing assets...
+                                            </div>
+                                          ) : (
+                                            <button
+                                              onClick={() => {
+                                                handleRefreshAssets()
+                                                if (taskStatuses.t2 === "completed") {
+                                                  setTaskVisibility(prev => ({ ...prev, t4: true }))
+                                                  startSaulForTask("t4")
+                                                }
+                                              }}
+                                              className="flex items-center gap-1.5 text-sm text-[#7c6fc4] hover:text-[#5a4fa0] font-medium"
+                                            >
+                                              <RefreshCw className="w-3.5 h-3.5" />
+                                              Refresh assets
+                                            </button>
+                                          )}
+                                        </div>
                                       </div>
                                     </>
                                   )
                                 })()}
 
                                 {/* APPROVED state */}
-                                {classificationState === "approved" && (
+                                {classificationApproved && (
                                   <div className="flex flex-col items-center justify-center py-16">
                                     <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
                                     <h3 className="text-lg font-semibold text-[#3d3d3d] mb-1">Classification approved</h3>
@@ -3426,7 +3537,7 @@ export default function EstateManagementPage() {
                                   </div>
                                 )}
                               </>
-                            ) : task.slug === "determine_the_path_of_legal_administration_applicable_to_the_decedent" ? (
+                            ) : task.slug === "validate_legal_administration_path" ? (
                               <>
                                 {/* Description (always visible) */}
                                 {task.description && (
@@ -3436,25 +3547,8 @@ export default function EstateManagementPage() {
                                   </div>
                                 )}
 
-                                {/* IDLE state */}
-                                {legalPathState === "idle" && (
-                                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <FileCheck className="w-4 h-4 text-[#7c6fc4]" />
-                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Legal Path Determination</h3>
-                                    </div>
-                                    <p className="text-sm text-[#6b675f] mb-4">Run SAUL to evaluate the estate and recommend the correct legal administration path.</p>
-                                    <Button
-                                      onClick={handleRunLegalPath}
-                                      className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
-                                    >
-                                      Determine legal path
-                                    </Button>
-                                  </div>
-                                )}
-
-                                {/* LOADING state */}
-                                {legalPathState === "loading" && (
+                                {/* PROCESSING state */}
+                                {taskProcessing[task.id] && (
                                   <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
                                     <div className="flex items-center gap-2 mb-2">
                                       <FileCheck className="w-4 h-4 text-[#7c6fc4]" />
@@ -3462,13 +3556,26 @@ export default function EstateManagementPage() {
                                     </div>
                                     <div className="flex items-center gap-3 mt-4">
                                       <Loader2 className="w-5 h-5 text-[#7c6fc4] animate-spin" />
-                                      <span className="text-sm text-[#6b675f]">SAUL is evaluating the estate...</span>
+                                      <span className="text-sm text-[#6b675f]">SAUL is evaluating the legal path...</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* ERROR state */}
+                                {taskError[task.id] && !taskProcessing[task.id] && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+                                    <div className="flex items-start gap-3">
+                                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-red-800 mb-1">Evaluation failed</h4>
+                                        <p className="text-sm text-red-700">{taskError[task.id]}</p>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
 
                                 {/* REVIEW state */}
-                                {legalPathState === "review" && legalPathData && (() => {
+                                {!taskProcessing[task.id] && !taskError[task.id] && legalPathData && !legalPathApproved && (() => {
                                   const { threshold_evaluation, legal_path, plan } = legalPathData
                                   const primaryCfg = LEGAL_PATH_CONFIG[legal_path.primary] ?? LEGAL_PATH_CONFIG.PROBATE_INDEPENDENT_ADMINISTRATION
                                   const effectivePath = legalPathOverride ?? legal_path.primary
@@ -3574,7 +3681,7 @@ export default function EstateManagementPage() {
                                 })()}
 
                                 {/* APPROVED state */}
-                                {legalPathState === "approved" && (
+                                {legalPathApproved && (
                                   <div className="flex flex-col items-center justify-center py-16">
                                     <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
                                     <h3 className="text-lg font-semibold text-[#3d3d3d] mb-1">Legal path approved</h3>
@@ -3582,7 +3689,7 @@ export default function EstateManagementPage() {
                                   </div>
                                 )}
                               </>
-                            ) : task.slug === "generate_probate_plan" ? (
+                            ) : task.slug === "validate_probate_plan" ? (
                               <>
                                 {/* Description (always visible) */}
                                 {task.description && (
@@ -3592,39 +3699,35 @@ export default function EstateManagementPage() {
                                   </div>
                                 )}
 
-                                {/* IDLE state */}
-                                {probatePlanState === "idle" && (
+                                {/* PROCESSING state */}
+                                {taskProcessing[task.id] && (
                                   <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
                                     <div className="flex items-center gap-2 mb-2">
                                       <ClipboardList className="w-4 h-4 text-[#7c6fc4]" />
-                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Settlement Plan Generation</h3>
-                                    </div>
-                                    <p className="text-sm text-[#6b675f] mb-4">SAUL will synthesize the asset classification and legal path determination to generate a complete settlement plan.</p>
-                                    <Button
-                                      onClick={handleRunProbatePlan}
-                                      className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
-                                    >
-                                      Generate probate plan
-                                    </Button>
-                                  </div>
-                                )}
-
-                                {/* LOADING state */}
-                                {probatePlanState === "loading" && (
-                                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <ClipboardList className="w-4 h-4 text-[#7c6fc4]" />
-                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Settlement Plan Generation</h3>
+                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Settlement Plan</h3>
                                     </div>
                                     <div className="flex items-center gap-3 mt-4">
                                       <Loader2 className="w-5 h-5 text-[#7c6fc4] animate-spin" />
-                                      <span className="text-sm text-[#6b675f]">SAUL is generating the settlement plan...</span>
+                                      <span className="text-sm text-[#6b675f]">SAUL is building the settlement plan...</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* ERROR state */}
+                                {taskError[task.id] && !taskProcessing[task.id] && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+                                    <div className="flex items-start gap-3">
+                                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-red-800 mb-1">Plan generation failed</h4>
+                                        <p className="text-sm text-red-700">{taskError[task.id]}</p>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
 
                                 {/* REVIEW state */}
-                                {probatePlanState === "review" && probatePlanData && (() => {
+                                {!taskProcessing[task.id] && !taskError[task.id] && probatePlanData && !probatePlanApproved && (() => {
                                   const { estate_summary, plan } = probatePlanData
                                   const approvedPathCfg = LEGAL_PATH_CONFIG[estate_summary.approved_path] ?? LEGAL_PATH_CONFIG.PROBATE_INDEPENDENT_ADMINISTRATION
                                   const highFlags = plan.flags.filter(f => f.severity === "HIGH")
@@ -3760,10 +3863,126 @@ export default function EstateManagementPage() {
                                 })()}
 
                                 {/* APPROVED state */}
-                                {probatePlanState === "approved" && (
+                                {probatePlanApproved && (
                                   <div className="flex flex-col items-center justify-center py-16">
                                     <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
                                     <h3 className="text-lg font-semibold text-[#3d3d3d] mb-1">Settlement plan approved</h3>
+                                    <p className="text-sm text-[#9b9b9b]">Closing...</p>
+                                  </div>
+                                )}
+                              </>
+                            ) : task.slug === "revalidate_asset_classification" ? (
+                              <>
+                                {/* Description (always visible) */}
+                                {task.description && (
+                                  <div>
+                                    <h3 className="text-sm font-semibold text-[#3d3d3d] mb-3">Description</h3>
+                                    <p className="text-sm text-[#4a4a4a] leading-relaxed">{task.description}</p>
+                                  </div>
+                                )}
+
+                                {/* PROCESSING state */}
+                                {taskProcessing[task.id] && (
+                                  <div className="bg-[#fafafa] border border-[#e5e5e5] rounded-lg p-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <BarChart3 className="w-4 h-4 text-[#7c6fc4]" />
+                                      <h3 className="text-sm font-semibold text-[#3d3d3d]">Asset Re-classification</h3>
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-4">
+                                      <Loader2 className="w-5 h-5 text-[#7c6fc4] animate-spin" />
+                                      <span className="text-sm text-[#6b675f]">SAUL is re-classifying the new asset...</span>
+                                    </div>
+                                    <p className="text-xs text-[#9b9b9b] mt-3">This usually takes a few seconds. We'll update this card when it's ready to review.</p>
+                                  </div>
+                                )}
+
+                                {/* ERROR state */}
+                                {taskError[task.id] && !taskProcessing[task.id] && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+                                    <div className="flex items-start gap-3">
+                                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-red-800 mb-1">Re-classification failed</h4>
+                                        <p className="text-sm text-red-700">{taskError[task.id]}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* REVIEW state */}
+                                {!taskProcessing[task.id] && !taskError[task.id] && t4Ready && !t4Approved && (() => {
+                                  const asset = SAUL_REVALIDATE_ASSET
+                                  const idx = 0
+                                  const effectiveBucket = bucketOverrides[idx] ?? asset.bucket
+                                  const bucketCfg = BUCKET_CONFIG[effectiveBucket] ?? BUCKET_CONFIG.PROBATE
+                                  const isOverridden = idx in bucketOverrides
+                                  const confidenceLevel = asset.confidence >= 0.90 ? "high" : asset.confidence >= 0.70 ? "medium" : "low"
+                                  const confidenceColor = confidenceLevel === "high" ? "bg-green-500" : confidenceLevel === "medium" ? "bg-amber-400" : "bg-red-500"
+                                  const confidenceLabel = confidenceLevel === "high" ? "High" : confidenceLevel === "medium" ? "Medium" : "Low"
+                                  return (
+                                    <div className="border border-[#e5e5e5] rounded-lg overflow-hidden">
+                                      <div className="grid grid-cols-[1fr_140px_90px] gap-2 px-4 py-2.5 bg-[#fafafa] border-b border-[#e5e5e5]">
+                                        <span className="text-[10px] font-semibold text-[#9b9b9b] uppercase tracking-wider">Asset</span>
+                                        <span className="text-[10px] font-semibold text-[#9b9b9b] uppercase tracking-wider">Bucket</span>
+                                        <span className="text-[10px] font-semibold text-[#9b9b9b] uppercase tracking-wider">Confidence</span>
+                                      </div>
+                                      <div>
+                                        <div className="grid grid-cols-[1fr_140px_90px] gap-2 px-4 py-3 border-b border-[#f0f0f0] items-start">
+                                          <div>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span className="text-sm text-[#3d3d3d] font-medium">{asset.asset}</span>
+                                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">New — needs review</span>
+                                            </div>
+                                            <p className="text-xs text-[#9b9b9b] leading-relaxed mt-0.5">{asset.reason}</p>
+                                          </div>
+                                          <div>
+                                            <div className={`relative inline-flex items-center rounded-md ${bucketCfg.bg} border ${bucketCfg.border}`}>
+                                              <select
+                                                value={effectiveBucket}
+                                                onChange={e => {
+                                                  const newBucket = e.target.value
+                                                  if (newBucket === asset.bucket) {
+                                                    setBucketOverrides(prev => { const next = { ...prev }; delete next[idx]; return next })
+                                                    setOverrideReasons(prev => { const next = { ...prev }; delete next[idx]; return next })
+                                                  } else {
+                                                    setBucketOverrides(prev => ({ ...prev, [idx]: newBucket }))
+                                                  }
+                                                }}
+                                                className={`text-xs font-medium ${bucketCfg.text} bg-transparent pl-2.5 pr-6 py-1 appearance-none cursor-pointer focus:outline-none`}
+                                              >
+                                                {BUCKET_OPTIONS.map(key => (
+                                                  <option key={key} value={key}>{BUCKET_CONFIG[key].label}</option>
+                                                ))}
+                                              </select>
+                                              <ChevronDown className={`w-3 h-3 ${bucketCfg.text} absolute right-1.5 pointer-events-none`} />
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center gap-1.5">
+                                            <span className={`w-2 h-2 rounded-full ${confidenceColor} flex-shrink-0`} />
+                                            <span className="text-xs text-[#6b675f]">{confidenceLabel}</span>
+                                          </div>
+                                        </div>
+                                        {isOverridden && (
+                                          <div className="px-4 py-3 bg-[#fafafa] border-b border-[#f0f0f0]">
+                                            <label className="block text-xs text-[#9b9b9b] mb-1.5">Why are you changing this classification? <span className="text-red-500">*</span></label>
+                                            <Input
+                                              value={overrideReasons[idx] ?? ""}
+                                              onChange={e => setOverrideReasons(prev => ({ ...prev, [idx]: e.target.value }))}
+                                              placeholder="Enter reason for override..."
+                                              className={`h-8 text-sm ${!overrideReasons[idx]?.trim() ? "border-red-300 focus:border-red-400" : "border-[#e5e5e5]"}`}
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )
+                                })()}
+
+                                {/* APPROVED state */}
+                                {t4Approved && (
+                                  <div className="flex flex-col items-center justify-center py-16">
+                                    <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
+                                    <h3 className="text-lg font-semibold text-[#3d3d3d] mb-1">Re-classification approved</h3>
                                     <p className="text-sm text-[#9b9b9b]">Closing...</p>
                                   </div>
                                 )}
@@ -3948,12 +4167,12 @@ export default function EstateManagementPage() {
                         </div>
 
                         {/* Modal footer */}
-                        {task.slug === "confirm_asset_classification" ? (
+                        {task.slug === "validate_asset_classification" ? (
                           <>
-                            {classificationState === "approved" ? null : classificationState === "review" && classificationData ? (
+                            {classificationApproved ? null : !taskProcessing[task.id] && !taskError[task.id] && classificationData ? (
                               <div className="flex items-center justify-between px-8 py-4 border-t border-[#f0f0f0]">
                                 <div className="flex items-center gap-1.5 text-xs text-[#6b675f]">
-                                  <span>{classificationData.classification.assets.length} assets classified</span>
+                                  <span>{classificationData.classification.assets.length + newClassifiedAssets.length} assets classified</span>
                                   <span className="text-[#d0d0d0]">&middot;</span>
                                   <span>{classificationData.classification.assets.filter(a => a.confidence < 0.70).length} low confidence</span>
                                 </div>
@@ -3965,10 +4184,25 @@ export default function EstateManagementPage() {
                                   Approve classification &rarr;
                                 </Button>
                               </div>
+                            ) : taskError[task.id] && !taskProcessing[task.id] ? (
+                              <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
+                                <Button
+                                  onClick={() => setTaskModalOpen(false)}
+                                  className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={() => handleRetryTask(task.id)}
+                                  className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
+                                >
+                                  Retry
+                                </Button>
+                              </div>
                             ) : (
                               <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
                                 <Button
-                                  onClick={() => { setTaskModalOpen(false); resetClassificationState(); resetLegalPathState(); }}
+                                  onClick={() => setTaskModalOpen(false)}
                                   className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
                                 >
                                   Cancel
@@ -3976,9 +4210,9 @@ export default function EstateManagementPage() {
                               </div>
                             )}
                           </>
-                        ) : task.slug === "determine_the_path_of_legal_administration_applicable_to_the_decedent" ? (
+                        ) : task.slug === "validate_legal_administration_path" ? (
                           <>
-                            {legalPathState === "approved" ? null : legalPathState === "review" && legalPathData ? (
+                            {legalPathApproved ? null : !taskProcessing[task.id] && !taskError[task.id] && legalPathData ? (
                               <div className="flex items-center justify-between px-8 py-4 border-t border-[#f0f0f0]">
                                 <div className="flex items-center gap-1.5 text-xs text-[#6b675f]">
                                   <span>Primary: {(LEGAL_PATH_CONFIG[legalPathOverride ?? legalPathData.legal_path.primary] ?? LEGAL_PATH_CONFIG.PROBATE_INDEPENDENT_ADMINISTRATION).label}</span>
@@ -3993,10 +4227,25 @@ export default function EstateManagementPage() {
                                   Approve legal path &rarr;
                                 </Button>
                               </div>
+                            ) : taskError[task.id] && !taskProcessing[task.id] ? (
+                              <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
+                                <Button
+                                  onClick={() => setTaskModalOpen(false)}
+                                  className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={() => handleRetryTask(task.id)}
+                                  className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
+                                >
+                                  Retry
+                                </Button>
+                              </div>
                             ) : (
                               <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
                                 <Button
-                                  onClick={() => { setTaskModalOpen(false); resetLegalPathState(); }}
+                                  onClick={() => setTaskModalOpen(false)}
                                   className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
                                 >
                                   Cancel
@@ -4004,9 +4253,9 @@ export default function EstateManagementPage() {
                               </div>
                             )}
                           </>
-                        ) : task.slug === "generate_probate_plan" ? (
+                        ) : task.slug === "validate_probate_plan" ? (
                           <>
-                            {probatePlanState === "approved" ? null : probatePlanState === "review" && probatePlanData ? (
+                            {probatePlanApproved ? null : !taskProcessing[task.id] && !taskError[task.id] && probatePlanData ? (
                               <div className="flex items-center justify-between px-8 py-4 border-t border-[#f0f0f0]">
                                 <div className="flex items-center gap-1.5 text-xs text-[#6b675f]">
                                   <span>{probatePlanData.plan.tracks.reduce((sum, tr) => sum + tr.actions.length, 0)} actions across {probatePlanData.plan.tracks.length} tracks</span>
@@ -4025,10 +4274,66 @@ export default function EstateManagementPage() {
                                   Approve plan &rarr;
                                 </Button>
                               </div>
+                            ) : taskError[task.id] && !taskProcessing[task.id] ? (
+                              <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
+                                <Button
+                                  onClick={() => setTaskModalOpen(false)}
+                                  className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={() => handleRetryTask(task.id)}
+                                  className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
+                                >
+                                  Retry
+                                </Button>
+                              </div>
                             ) : (
                               <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
                                 <Button
-                                  onClick={() => { setTaskModalOpen(false); resetProbatePlanState(); }}
+                                  onClick={() => setTaskModalOpen(false)}
+                                  className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            )}
+                          </>
+                        ) : task.slug === "revalidate_asset_classification" ? (
+                          <>
+                            {t4Approved ? null : !taskProcessing[task.id] && !taskError[task.id] && t4Ready ? (
+                              <div className="flex items-center justify-between px-8 py-4 border-t border-[#f0f0f0]">
+                                <div className="flex items-center gap-1.5 text-xs text-[#6b675f]">
+                                  <span>1 asset classified</span>
+                                </div>
+                                <Button
+                                  onClick={handleApproveT4}
+                                  disabled={Object.keys(bucketOverrides).some(idx => !overrideReasons[Number(idx)]?.trim())}
+                                  className="bg-[#1a1a2e] hover:bg-[#2d2d4e] text-white h-9 px-5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Approve classification &rarr;
+                                </Button>
+                              </div>
+                            ) : taskError[task.id] && !taskProcessing[task.id] ? (
+                              <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
+                                <Button
+                                  onClick={() => setTaskModalOpen(false)}
+                                  className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={() => handleRetryTask(task.id)}
+                                  className="bg-[#7c6fc4] hover:bg-[#5a4fa0] text-white h-9 px-5 text-sm"
+                                >
+                                  Retry
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
+                                <Button
+                                  onClick={() => setTaskModalOpen(false)}
                                   className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
                                 >
                                   Cancel
@@ -4039,7 +4344,7 @@ export default function EstateManagementPage() {
                         ) : (
                           <div className="flex items-center justify-end gap-3 px-8 py-4 border-t border-[#f0f0f0]">
                             <Button
-                              onClick={() => { setTaskModalOpen(false); resetClassificationState(); resetLegalPathState(); resetProbatePlanState(); }}
+                              onClick={() => setTaskModalOpen(false)}
                               className="bg-white border border-[#d0d0d0] text-[#3d3d3d] hover:bg-[#f8f7f5] h-9 px-5 text-sm"
                             >
                               Cancel

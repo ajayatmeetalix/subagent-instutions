@@ -6,35 +6,69 @@ This is a prototype. There is no full backend. Mock all SAUL API calls using sam
 
 ## What's Been Built
 
-### Confirm Asset Classification (✅ Shipped)
+### Validate Asset Classification (✅ Shipped)
 
-A job modal that replaces a manual checklist with a SAUL-driven asset classification review UI.
+**Slug:** `validate_asset_classification` | **Task ID:** `t2`
 
-**Flow:**
-1. Specialist opens the "Confirm Asset Classification" modal → sees description + "Run classification" button
-2. Clicks "Run classification" → 2.5s simulated delay → SAUL mock response loads
-3. Modal renders: blocked paths banner + asset table with bucket dropdowns and confidence indicators
-4. Specialist can override any bucket (requires a reason per override)
-5. Clicks "Approve classification" → 2s success state → modal closes
-6. **Job sequencing:** `t2` moves to Completed; `t1` (Determine Legal Path) appears in To Do
-
-### Determine the Legal Administration Path (✅ Shipped)
-
-The next job in the sequence. Surfaces automatically after asset classification is approved.
+SAUL runs automatically when the job becomes visible. The specialist opens the modal to find results already populated and validates SAUL's output.
 
 **Flow:**
-1. Specialist opens the "Determine the Legal Administration Path" modal → sees description + "Determine legal path" button
-2. Clicks "Determine legal path" → 2.5s simulated delay → SAUL mock response loads
-3. Modal renders three sections:
-   - **Threshold evaluation** — probate estate value vs. SEA threshold, qualified/not
-   - **Recommended legal path** — primary path badge + SAUL's rationale + parallel tracks (Trust, SEA, Non-probate)
-   - **Override control** — single dropdown (always visible); selecting a different path reveals a required reason field
-4. "Approve legal path" is always enabled unless an override is selected without a reason
-5. Clicks "Approve legal path" → 2s success state → modal closes; `t1` moves to Completed
+1. Job appears in To Do with a "Processing" badge — SAUL starts running automatically after a 1s delay
+2. While processing: clicking the card opens the modal to a processing state showing "SAUL is classifying assets..."
+3. When SAUL finishes: card transitions to normal To Do state, modal opens directly to REVIEW
+4. REVIEW renders: blocked paths banner (if any) + asset classification table with unvalidated asset indicators
+5. Specialist can override any bucket (requires a reason per override)
+6. "↻ Refresh assets" button at bottom of table — 1.5s SAUL call, appends Wells Fargo Checking Account with "New — needs review" badge; if `t2` is already Completed, also surfaces `t4` with Processing badge
+7. Clicks "Approve classification" → 2s success state → modal closes
+8. **Job sequencing:** `t2` → Completed; `t1` (Validate Legal Path) appears with "Processing" badge
 
-### Next: Generate Probate Plan (🔜 Next prototype — separate repo)
+**Failure state:** 10% random failure rate for demo. Card shows "Error" badge. Modal shows specific error message + "Retry" button.
 
-After legal path is approved, a "Generate Probate Plan" job surfaces. This is being built as a **separate prototype**. See `generate_probate_plan_feature.md` for full context to hand off to that session.
+**Unvalidated assets:** Assets without confirmed titling show a gray "Unvalidated — provisional" badge. Apply to: Money Owed to Decedent, Rental income from 22 University.
+
+---
+
+### Validate Legal Administration Path (✅ Shipped)
+
+**Slug:** `validate_legal_administration_path` | **Task ID:** `t1`
+
+**Flow:**
+1. Job appears in To Do with "Processing" badge after `t2` is approved — SAUL starts automatically
+2. While processing: modal shows "SAUL is evaluating the legal path..."
+3. When SAUL finishes: modal opens directly to REVIEW
+4. REVIEW renders: threshold evaluation card + recommended legal path + single override control
+5. "Approve legal path" enabled unless override selected without a reason
+6. Clicks "Approve legal path" → 2s success state → `t1` → Completed; `t3` appears with "Processing" badge
+
+---
+
+### Validate Probate Plan (✅ Shipped)
+
+**Slug:** `validate_probate_plan` | **Task ID:** `t3`
+
+**Flow:**
+1. Job appears in To Do with "Processing" badge after `t1` is approved — SAUL starts automatically
+2. While processing: modal shows "SAUL is building the settlement plan..."
+3. When SAUL finishes: modal opens directly to REVIEW
+4. REVIEW renders: missed deadline flag + estate summary + action plan by track + sequencing notes
+5. Specialist can mark individual actions as N/A (requires a reason per action)
+6. Clicks "Approve plan" → 2s success state → `t3` → Completed
+
+### Re-validate Asset Classification (✅ Shipped)
+
+**Slug:** `revalidate_asset_classification` | **Task ID:** `t4`
+
+Surfaces conditionally when "↻ Refresh assets" is clicked inside the t2 modal while t2 is already in Completed status. SAUL auto-runs immediately.
+
+**Flow:**
+1. "↻ Refresh assets" clicked on completed t2 → `t4` appears in To Do with "Processing" badge, SAUL starts automatically
+2. While processing: modal shows "SAUL is re-classifying the new asset..."
+3. When SAUL finishes: modal opens directly to REVIEW
+4. REVIEW renders: single-row asset table showing the Wells Fargo Checking Account with "New — needs review" badge
+5. Specialist can override the bucket (requires a reason)
+6. Clicks "Approve classification" → 2s success state → `t4` → Completed
+
+**Failure state:** 10% random failure rate. Card shows "Error" badge. Modal shows error message + "Retry" button.
 
 ---
 
@@ -42,12 +76,12 @@ After legal path is approved, a "Generate Probate Plan" job surfaces. This is be
 
 | | |
 |---|---|
-| **Framework** | Next.js (App Router), single `app/page.tsx` file (~4,800 lines), `'use client'` |
+| **Framework** | Next.js (App Router), single `app/page.tsx` file, `'use client'` |
 | **Styling** | Tailwind CSS v4, hardcoded hex colors throughout (see palette below) |
-| **UI Library** | shadcn/ui — only `Button` (`components/ui/button.tsx`) and `Input` (`components/ui/input.tsx`) are used |
+| **UI Library** | shadcn/ui — only `Button` (`components/ui/button.tsx`) and `Input` (`components/ui/input.tsx`) |
 | **Icons** | Lucide React |
 | **State** | React `useState` only — no Redux, no Context |
-| **Dev server** | `npx next dev` via `.claude/launch.json` (preview server auto-assigns port) |
+| **Dev server** | `npx next dev` via `.claude/launch.json` |
 
 **Color palette:**
 - Dark: `#1a1a2e`, `#3d3d3d`, `#2d2d4e`
@@ -75,10 +109,10 @@ After legal path is approved, a "Generate Probate Plan" job surfaces. This is be
 | `app/page.tsx` | Entire app — all components, state, modals, data |
 | `components/ui/button.tsx` | shadcn Button with CVA variants |
 | `components/ui/input.tsx` | shadcn Input |
-| `asset_classification_feature.md` | SAUL output schema, mock JSON, bucket/confidence display rules for classification |
-| `classification_modal_ui_spec.md` | Classification modal states, layout, implementation decisions |
-| `legal_path_feature.md` | Legal path SAUL schema, mock JSON, UI spec, implementation notes |
-| `generate_probate_plan_feature.md` | Context doc for the next prototype (separate repo) |
+| `feature_1_asset_classification.md` | t2 mock JSON, bucket/confidence/unvalidated display rules, refresh button behavior |
+| `feature_2_legal_path.md` | t1 legal path mock JSON, UI spec, threshold evaluation |
+| `feature_3_generate_probate_plan.md` | t3 probate plan mock JSON, track display, N/A override behavior |
+| `feature_4_revalidate_asset_classification.md` | t4 re-validation modal, single-asset REVIEW, SAUL_REVALIDATE_ASSET mock |
 | `.claude/launch.json` | Dev server config |
 
 ---
@@ -89,7 +123,7 @@ Tasks are defined in the `JOBS_BOARD_TASKS` array (top of `app/page.tsx`):
 
 ```typescript
 {
-  id: string           // "t1", "t2", etc.
+  id: string           // "t1", "t2", "t3", "t4"
   slug: string         // used to conditionally render custom modal UIs
   title: string
   assignee: string
@@ -100,7 +134,7 @@ Tasks are defined in the `JOBS_BOARD_TASKS` array (top of `app/page.tsx`):
   status: "todo" | "in-progress" | "awaiting-review" | "completed"
   priority: string
   jobVersion: number
-  jobId: string        // UUID
+  jobId: string
   steps: { done: number; total: number }
   description: string
   stepItems: Array<{ id: number; text: string }>
@@ -108,33 +142,82 @@ Tasks are defined in the `JOBS_BOARD_TASKS` array (top of `app/page.tsx`):
 ```
 
 **Current tasks:**
-- `t1` — `determine_the_path_of_legal_administration_applicable_to_the_decedent` — hidden on load; appears when `t2` is approved ← has custom SAUL UI
-- `t2` — `confirm_asset_classification` (To Do) ← has custom SAUL UI
+- `t2` — `validate_asset_classification` — visible on load, auto-runs SAUL
+- `t1` — `validate_legal_administration_path` — hidden on load; appears + auto-runs when `t2` approved
+- `t3` — `validate_probate_plan` — hidden on load; appears + auto-runs when `t1` approved
+- `t4` — `revalidate_asset_classification` — hidden on load; appears + auto-runs when "↻ Refresh assets" clicked while `t2` is Completed
 - `c1–c3` — completed tasks
 
-**Pattern for custom modal UIs:** check `task.slug === "your_slug"` inside the task modal IIFE to swap out the left panel content and footer. The IIFE uses a ternary chain — add new slugs before the final `else` branch.
+---
+
+## Auto-Run Pattern
+
+SAUL runs automatically when a job becomes visible. The card shows a "Processing" badge while running. State machine: `PROCESSING → REVIEW → APPROVED` (no IDLE state — SAUL always starts immediately).
+
+```typescript
+// Task processing state — separate from task visibility/status
+const [taskProcessing, setTaskProcessing] = useState<Record<string, boolean>>({ t2: true })
+const [taskError, setTaskError] = useState<Record<string, string | null>>({})
+
+// When a task becomes visible, start SAUL automatically
+const startSaulForTask = (taskId: string) => {
+  setTaskProcessing(prev => ({ ...prev, [taskId]: true }))
+  setTimeout(() => {
+    // 10% failure rate for demo
+    if (Math.random() < 0.1) {
+      setTaskError(prev => ({ ...prev, [taskId]: "Classification failed — 2 assets are missing titling status." }))
+      setTaskProcessing(prev => ({ ...prev, [taskId]: false }))
+    } else {
+      setTaskProcessing(prev => ({ ...prev, [taskId]: false }))
+      // set modal data for this task
+    }
+  }, 2500)
+}
+```
+
+**Card badge logic:**
+- `taskProcessing[id] === true` → show "Processing" badge (amber/gray)
+- `taskError[id]` → show "Error" badge (red)
+- Otherwise → normal card
+
+**Modal open behavior:**
+- If `taskProcessing[id]` → open to processing state with job-specific message
+- If `taskError[id]` → open to error state with message + Retry button
+- Otherwise → open directly to REVIEW state
 
 ---
 
 ## Job Sequencing Pattern
 
-Task visibility and status are controlled by two state variables, not the hardcoded `JOBS_BOARD_TASKS` array:
-
 ```typescript
-const [taskVisibility, setTaskVisibility] = useState<Record<string, boolean>>({ t1: false })
+const [taskVisibility, setTaskVisibility] = useState<Record<string, boolean>>({ t1: false, t3: false, t4: false })
 const [taskStatuses, setTaskStatuses] = useState<Record<string, string>>({})
 ```
 
-The kanban board filters/maps over `JOBS_BOARD_TASKS` using these at render time:
+On `t2` approval:
 ```typescript
-const tasksWithState = JOBS_BOARD_TASKS
-  .filter(t => taskVisibility[t.id] !== false)
-  .map(t => ({ ...t, status: (taskStatuses[t.id] ?? t.status) }))
+setTaskStatuses(prev => ({ ...prev, t2: "completed" }))
+setTaskVisibility(prev => ({ ...prev, t1: true }))
+startSaulForTask("t1")  // auto-run immediately
 ```
 
-To hide a task on load: add `taskId: false` to `taskVisibility` initial state.
-To surface a task after an approval: call `setTaskVisibility(prev => ({ ...prev, taskId: true }))`.
-To move a task to Completed: call `setTaskStatuses(prev => ({ ...prev, taskId: "completed" }))`.
+On `t1` approval:
+```typescript
+setTaskStatuses(prev => ({ ...prev, t1: "completed" }))
+setTaskVisibility(prev => ({ ...prev, t3: true }))
+startSaulForTask("t3")  // auto-run immediately
+```
+
+On `t3` approval:
+```typescript
+setTaskStatuses(prev => ({ ...prev, t3: "completed" }))
+```
+
+On "↻ Refresh assets" clicked while `taskStatuses.t2 === "completed"`:
+```typescript
+setTaskVisibility(prev => ({ ...prev, t4: true }))
+startSaulForTask("t4")  // auto-run immediately
+```
 
 ---
 
@@ -149,8 +232,9 @@ To move a task to Completed: call `setTaskStatuses(prev => ({ ...prev, taskId: "
 | `COMMUNITY_PROPERTY` | Community property | teal-50 / teal-700 |
 | `JOINT_TENANCY` | Joint tenancy | teal-50 / teal-700 |
 | `SPOUSAL_TRANSFER` | Spousal transfer | teal-50 / teal-700 |
+| `UNVALIDATED` | Unvalidated — provisional | gray-50 / gray-400 |
 
-Defined as `BUCKET_CONFIG` constant in `app/page.tsx` (after `JOBS_BOARD_TASKS`).
+Defined as `BUCKET_CONFIG` in `app/page.tsx`.
 
 ---
 
@@ -165,43 +249,27 @@ Defined as `BUCKET_CONFIG` constant in `app/page.tsx` (after `JOBS_BOARD_TASKS`)
 | `NON_PROBATE` | Non-probate transfer | green-50 / green-700 |
 | `ANCILLARY_PROBATE` | Ancillary probate | orange-50 / orange-700 |
 
-Defined as `LEGAL_PATH_CONFIG` constant in `app/page.tsx` (after `BUCKET_OPTIONS`).
+Defined as `LEGAL_PATH_CONFIG` in `app/page.tsx`.
 
 ---
 
-## SAUL Mock Pattern
+## SAUL Mock Constants
 
-All SAUL responses are hardcoded constants defined outside the component, then loaded via `setTimeout` to simulate network delay:
+All hardcoded after `JOBS_BOARD_TASKS` in `app/page.tsx`:
 
-```typescript
-const SAUL_RESPONSE = { ... } // hardcoded at top of file, after JOBS_BOARD_TASKS
-
-const handleRunSaul = () => {
-  setState("loading")
-  setTimeout(() => {
-    setData(SAUL_RESPONSE)
-    setState("review")
-  }, 2500)
-}
-```
-
-**Existing mock constants:**
-- `SAUL_CLASSIFICATION_RESPONSE` — asset buckets, confidence scores, blocked paths, plan actions
-- `SAUL_LEGAL_PATH_RESPONSE` — threshold evaluation, primary path, parallel tracks, blocked paths, plan actions
+- `SAUL_CLASSIFICATION_RESPONSE` — asset buckets, confidence scores, unvalidated flags, blocked paths
+- `SAUL_LEGAL_PATH_RESPONSE` — threshold evaluation, primary path, parallel tracks
+- `SAUL_PROBATE_PLAN_RESPONSE` — estate summary, tracks, actions, sequencing notes, flags
+- `SAUL_REVALIDATE_ASSET` — single asset mock for t4 (Wells Fargo Checking Account, PROBATE, confidence 0.85)
 
 ---
 
 ## Prototype Conventions
 
 - No real API calls, no real auth, no real state persistence
-- Mock SAUL responses as top-level constants in `app/page.tsx`
-- Simulate 2–3 second loading delays
-- All state lives in the main `EstateManagementPage` component via `useState`
-- When adding a new SAUL-driven job modal:
-  1. Add mock data constant after `SAUL_LEGAL_PATH_RESPONSE` (~line 280)
-  2. Add state hooks after `legalPathOverrideReason` (~line 306)
-  3. Add reset + run + approve handlers after `handleApproveLegalPath` (~line 345)
-  4. Add task to `JOBS_BOARD_TASKS` with `status: "todo"` and hide it in `taskVisibility`
-  5. Add conditional rendering inside the task modal IIFE left panel (ternary chain ~line 3150)
-  6. Add conditional rendering inside the task modal IIFE footer (ternary chain ~line 3700)
-  7. Wire up visibility + status transitions in the approve handler
+- SAUL auto-runs on task visibility — no manual trigger buttons
+- 10% random failure rate on all SAUL calls for demo purposes
+- 1s delay before SAUL starts, 2.5s processing delay
+- "↻ Refresh assets" in t2 REVIEW: 1.5s delay, appends Wells Fargo asset; if t2 is Completed, also surfaces t4
+- t4 SAUL response is the hardcoded `SAUL_REVALIDATE_ASSET` constant (no network call needed — `t4Ready` flag set on success)
+- All state in `EstateManagementPage` via `useState` + `useEffect` (mount-time auto-start for t2)
