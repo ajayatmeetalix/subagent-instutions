@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { format } from "date-fns"
-import { Home, Briefcase, FileText, Trash2, Users, Building2, Copy, ChevronRight, ArrowLeft, Download, Plus, Menu, RefreshCw, User, CreditCard, DollarSign, Lock, Clipboard, UserCircle, BarChart3, FileCheck, UserPlus, CircleDollarSign, MousePointer, FolderOpen, Search, Edit, Folder, Grid, Upload, FolderPlus, MoreVertical, Trash, Edit2, X, File, CheckCircle, Image, FileImage, FolderInput, Eye, CalendarDays, Clock, CheckCircle2, AlertCircle, Loader2, AlertTriangle, Ban, ChevronDown, ClipboardList, ArrowRight } from "lucide-react"
+import { Home, Briefcase, FileText, Trash2, Users, Building2, Copy, ChevronRight, ArrowLeft, Download, Plus, Menu, RefreshCw, User, CreditCard, DollarSign, Lock, Clipboard, UserCircle, BarChart3, FileCheck, UserPlus, CircleDollarSign, MousePointer, FolderOpen, Search, Edit, Folder, Grid, Upload, FolderPlus, MoreVertical, Trash, Edit2, X, File, CheckCircle, Image, FileImage, FolderInput, Eye, CalendarDays, Clock, CheckCircle2, AlertCircle, Loader2, AlertTriangle, Ban, ChevronDown, ClipboardList, ArrowRight, Map } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -2027,6 +2027,16 @@ export default function EstateManagementPage() {
                 <Users className="w-[18px] h-[18px] flex-shrink-0" />
                 <span className="text-[13px] whitespace-nowrap">Manage Users on Estate</span>
               </button>
+              <hr className="border-[#c0bcb6] my-1.5 mx-2" />
+              <a
+                href="/probate-research"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md transition-colors text-[#6b675f] hover:bg-[#ececec] hover:text-[#3d3d3d]"
+                title="Probate Research"
+              >
+                <Map className="w-[18px] h-[18px] flex-shrink-0" />
+                <span className="text-[13px] whitespace-nowrap">Probate Research</span>
+                <span className="ml-auto text-[9px] font-semibold text-[#7c6fc4] bg-purple-50 border border-purple-200 rounded px-1 py-0.5 leading-tight">NEW</span>
+              </a>
             </nav>
           </aside>
 
@@ -5233,6 +5243,16 @@ export default function EstateManagementPage() {
               <FolderOpen className="w-[18px] h-[18px] flex-shrink-0" />
               <span className="text-[13px] whitespace-nowrap">Document Vault</span>
             </button>
+            <hr className="border-[#c0bcb6] my-1.5 mx-2" />
+            <a
+              href="/probate-research"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md transition-colors text-[#6b675f] hover:bg-[#ececec] hover:text-[#3d3d3d]"
+              title="Probate Research"
+            >
+              <Map className="w-[18px] h-[18px] flex-shrink-0" />
+              <span className="text-[13px] whitespace-nowrap">Probate Research</span>
+              <span className="ml-auto text-[9px] font-semibold text-[#7c6fc4] bg-purple-50 border border-purple-200 rounded px-1 py-0.5 leading-tight">NEW</span>
+            </a>
           </nav>
         </aside>
 
