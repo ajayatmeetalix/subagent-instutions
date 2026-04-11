@@ -80,6 +80,11 @@ components/
       FeesCard.tsx
       TimelinesCard.tsx
       QuickReferenceCard.tsx
+      OverviewCard.tsx
+      FilingStepsCard.tsx
+      FormsCard.tsx
+      FAQsCard.tsx
+      LocalRequirementsCard.tsx
       ResourcesCard.tsx
       EfilingChip.tsx
 lib/
@@ -105,7 +110,7 @@ import jurisdictionData from "../../swiftprobate_full.json"
 import jurisdictionData from "../../swiftprobate_full.json"
 ```
 
-The file is ~13 MB. Next.js handles it fine. Do not fetch at runtime — static import only.
+The file is ~32 MB. Next.js handles it fine. Do not fetch at runtime — static import only.
 
 ---
 

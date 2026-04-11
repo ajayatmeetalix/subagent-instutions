@@ -29,13 +29,18 @@ side-by-side and scroll independently. On mobile, they stack vertically.
 │  ▸ Alabama  (67)     │  ┌────────────────────────────────────────┐  │
 │  ▾ Alaska   (29)     │  │  Jefferson County                      │  │
 │      Aleutians East  │  │  Alabama · AL                          │  │
-│      Anchorage       │  │  View on SwiftProbate →                │  │
+│      Anchorage       │  │  View on SwiftProbate →     Updated …  │  │
 │  ▸ Arizona  (15)     │  │  ────────────────────────────────────  │  │
 │  ▸ Arkansas (75)     │  │  [ Quick Reference card ]              │  │
-│  ...                 │  │  [ Fees card ]                         │  │
-│                      │  │  [ Timelines card ]                    │  │
+│  ...                 │  │  [ Overview card ]                     │  │
+│                      │  │  [ Fees card ]                         │  │
+│                      │  │  [ Estimated Timelines card ]          │  │
 │                      │  │  [ Courthouse card ]                   │  │
 │                      │  │  [ E-Filing section ]                  │  │
+│                      │  │  [ Filing Steps card ]                 │  │
+│                      │  │  [ Local Requirements card ]           │  │
+│                      │  │  [ Forms card ]                        │  │
+│                      │  │  [ FAQs card ]                         │  │
 │                      │  │  [ Resources card ]                    │  │
 │                      │  └────────────────────────────────────────┘  │
 └──────────────────────┴──────────────────────────────────────────────┘
@@ -259,14 +264,27 @@ If `county` is undefined (stale URL param), show the placeholder.
 </div>
 ```
 
+### Header
+Include `county.lastUpdated` as a subtle "Updated {date}" badge in the header row (top-right).
+
 ### Cards area
 ```tsx
 <div className="px-6 pb-6 flex flex-col gap-4">
-  <QuickReferenceCard state={state} />
-  {county.fees && <FeesCard fees={county.fees} />}
-  {county.timelines && <TimelinesCard timelines={county.timelines} />}
+  {state.quickReference && <QuickReferenceCard state={state} />}
+  {county.overview && <OverviewCard overview={county.overview} />}
+  {(county.fees?.length ?? 0) > 0 && <FeesCard fees={county.fees!} />}
+  {(county.estimatedTimelines?.length ?? 0) > 0 && <TimelinesCard timelines={county.estimatedTimelines!} />}
   <CourthouseCard county={county} />
-  <EfilingSection county={county} />
+  {/* E-Filing section — inline card */}
+  {(county.efilingRequired !== null || !!county.efilingPortal) && <EfilingSection county={county} />}
+  {(county.filingSteps?.length ?? 0) > 0 && <FilingStepsCard steps={county.filingSteps!} />}
+  <LocalRequirementsCard
+    localRequirements={county.localRequirements}
+    paymentMethods={county.paymentMethods}
+    publicationNewspaper={county.publicationNewspaper}
+  />
+  {(county.forms?.length ?? 0) > 0 && <FormsCard forms={county.forms!} />}
+  {county.faqs.length > 0 && <FAQsCard faqs={county.faqs} />}
   {county.resources.length > 0 && <ResourcesCard resources={county.resources} />}
 </div>
 ```
@@ -318,33 +336,22 @@ Return `null` if `state.quickReference` is null.
 
 ## Card: Fees (`components/probate-research/cards/FeesCard.tsx`)
 
-**Data source:** `county.fees` — `Record<string, string>`
+**Data source:** `county.fees` — `string[]` — each item is a bullet-style fee line,
+e.g. `"Probate of Will / Letters Testamentary: approximately $175.00"`.
 
-**Key → label mapping:**
-
-| Key | Label |
-|-----|-------|
-| `smallEstate` | Small / Summary Estate |
-| `probateOfWill` | Probate of Will |
-| `lettersTestamentary` | Letters Testamentary |
-| `noticePublication` | Notice of Publication |
-| any other key | `camelToTitleCase(key)` |
-
-**Long value truncation:** Values longer than 120 characters get truncated with a
-`"Show more"` toggle. Use `useState<Set<string>>` keyed on the fee key.
+**Long value truncation:** Items longer than 120 characters get truncated with a
+`"Show more"` toggle. Use `useState<Set<number>>` keyed on array index.
 
 ```tsx
+type Props = { fees: string[] }
+
 // Each fee entry
-<div key={key} className="py-2 first:pt-0 last:pb-0">
-  <p className="text-xs text-[#6b675f] mb-0.5">{label}</p>
+<div key={i} className="py-2 first:pt-0 last:pb-0">
   <p className="text-sm text-[#1a1a2e]">
     {isExpanded || value.length <= 120 ? value : `${value.slice(0, 120)}…`}
   </p>
   {value.length > 120 && (
-    <button
-      onClick={() => toggleExpand(key)}
-      className="text-xs text-[#7c6fc4] hover:underline mt-0.5"
-    >
+    <button onClick={() => toggleExpand(i)} className="text-xs text-[#7c6fc4] hover:underline mt-0.5">
       {isExpanded ? "Show less" : "Show more"}
     </button>
   )}
@@ -353,99 +360,48 @@ Return `null` if `state.quickReference` is null.
 <hr className="border-[#f0f0f0]" />
 ```
 
-Return `null` if `!county.fees || Object.keys(county.fees).length === 0`.
+Return `null` if `fees.length === 0`.
 
 ---
 
 ## Card: Timelines (`components/probate-research/cards/TimelinesCard.tsx`)
 
-**Data source:** `county.timelines` — `Record<string, string>`
-
-**Key → label mapping:**
-
-| Key | Label |
-|-----|-------|
-| `independentAdmin` | Simple / Independent Administration |
-| `dependentAdmin` | Complex / Dependent Administration |
-| any other key | `camelToTitleCase(key)` |
+**Data source:** `county.estimatedTimelines` — `string[]` — each item is a timeline description,
+e.g. `"Simple estates (no disputes, limited assets): 6-9 months"`.
 
 ```tsx
+type Props = { timelines: string[] }
+
 // Each timeline entry
-<div key={key} className="py-2 first:pt-0 last:pb-0">
-  <p className="text-xs text-[#6b675f] mb-0.5">{label}</p>
+<div key={i} className="py-2 first:pt-0 last:pb-0">
   <p className="text-sm text-[#1a1a2e]">{value}</p>
 </div>
 // Separator between entries
 <hr className="border-[#f0f0f0]" />
 ```
 
-Return `null` if `!county.timelines || Object.keys(county.timelines).length === 0`.
+Return `null` if `timelines.length === 0`.
 
 ---
 
 ## Card: Courthouse (`components/probate-research/cards/CourthouseCard.tsx`)
 
-**Data sources (priority order):**
+**Data source:** `county.courthouse` — `CountyCourthouse | null`
 
-| Info | Primary | Fallback |
-|------|---------|---------|
-| Address | `county.quickReference.Courthouse` | — |
-| Phone | `county.quickReference.Phone` | `county.courthouse.phones[0]` |
-| Hours | `county.courthouse.hours` (strip `"Hours: "` prefix) | — |
-| Website | `county.courthouse.websites[0]` | — |
+| Field | Display | Notes |
+|-------|---------|-------|
+| `courthouse.name` | Court name (bold) | Optional |
+| `courthouse.address` | Address with MapPin icon | Optional |
+| `courthouse.phone` | Phone with copy-to-clipboard | Via `getPrimaryPhone(county)` |
+| `courthouse.fax` | Fax with Printer icon + copy | Via `getPrimaryFax(county)` |
+| `courthouse.hours` | Hours with Clock icon | Strip `"Hours: "` prefix |
+| `courthouse.parkingAndAccess` | Parking with ParkingCircle icon | Optional |
 
-**Do not render** `county.courthouse.judges` or `county.quickReference.Website`.
-
-**Phone row with copy:**
-```tsx
-import { Phone, Copy, Check } from "lucide-react"
-import * as Tooltip from "@radix-ui/react-tooltip"
-
-const [copied, setCopied] = useState(false)
-
-const handleCopy = () => {
-  navigator.clipboard.writeText(phone)
-  setCopied(true)
-  setTimeout(() => setCopied(false), 2000)
-}
-
-<div className="flex items-center gap-2 py-1.5">
-  <Phone size={14} className="text-[#9b9b9b] shrink-0" />
-  <span className="text-sm text-[#1a1a2e] flex-1">{phone}</span>
-  <Tooltip.Provider>
-    <Tooltip.Root open={copied}>
-      <Tooltip.Trigger asChild>
-        <button onClick={handleCopy} className="text-[#9b9b9b] hover:text-[#1a1a2e] transition-colors">
-          {copied ? <Check size={14} /> : <Copy size={14} />}
-        </button>
-      </Tooltip.Trigger>
-      <Tooltip.Content className="text-xs bg-[#1a1a2e] text-white px-2 py-1 rounded">
-        Copied!
-      </Tooltip.Content>
-    </Tooltip.Root>
-  </Tooltip.Provider>
-</div>
-```
+**Phone and fax rows** each have a copy-to-clipboard button (same `<Tooltip>` pattern).
 
 **Hours:** Strip `"Hours: "` prefix: `hours.replace(/^Hours:\s*/i, "")`
 
-**Website row:**
-```tsx
-import { Globe, ExternalLink } from "lucide-react"
-
-<a
-  href={website}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center gap-2 py-1.5 text-sm text-[#7c6fc4] hover:underline"
->
-  <Globe size={14} className="shrink-0" />
-  <span className="flex-1">{urlToDisplayLabel(website)}</span>
-  <ExternalLink size={12} />
-</a>
-```
-
-Return `null` if none of address, phone, hours, or website is available.
+Return `null` if none of name, address, phone, fax, hours, or parkingAndAccess is available.
 
 ---
 
@@ -487,6 +443,96 @@ const badge = efilingRequired === true
 ```
 
 Omit entire section if `efilingRequired === null && !efilingPortal`.
+
+---
+
+## Card: Overview (`components/probate-research/cards/OverviewCard.tsx`)
+
+**Data source:** `county.overview` — `string | null`
+
+Renders the county-level overview prose as a paragraph.
+
+```tsx
+type Props = { overview: string }
+```
+
+Return `null` if `!overview?.trim()`.
+
+---
+
+## Card: Filing Steps (`components/probate-research/cards/FilingStepsCard.tsx`)
+
+**Data source:** `county.filingSteps` — `CountyFilingStep[]`
+
+Renders a numbered list. Each item has a `step` (bold) and `detail` (muted caption).
+
+```tsx
+type Props = { steps: CountyFilingStep[] }
+
+<ol className="flex flex-col gap-3">
+  {steps.map((item, i) => (
+    <li key={i} className="flex gap-3">
+      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#f0f0f0] text-[#6b675f] text-xs font-semibold flex items-center justify-center mt-0.5">
+        {i + 1}
+      </span>
+      <div>
+        <p className="text-sm font-medium text-[#1a1a2e]">{item.step}</p>
+        {item.detail && <p className="text-xs text-[#6b675f] mt-0.5 leading-relaxed">{item.detail}</p>}
+      </div>
+    </li>
+  ))}
+</ol>
+```
+
+Return `null` if `steps.length === 0`.
+
+---
+
+## Card: Forms (`components/probate-research/cards/FormsCard.tsx`)
+
+**Data source:** `county.forms` — `CountyForm[]`
+
+Renders each form as a linked name (if URL is valid after `cleanUrl()`) with a description caption.
+
+```tsx
+type Props = { forms: CountyForm[] }
+```
+
+- Form name links to `form.url` (via `cleanUrl()`) in a new tab, with `ExternalLink` icon
+- If `cleanUrl()` returns `null`, render name as plain text (no link)
+- `form.description` rendered as muted caption below the name
+
+Return `null` if `forms.length === 0`.
+
+---
+
+## Card: FAQs (`components/probate-research/cards/FAQsCard.tsx`)
+
+**Data source:** `county.faqs` — `CountyFaq[]`
+
+Collapsible Q&A list using `@radix-ui/react-collapsible`.
+
+```tsx
+type Props = { faqs: CountyFaq[] }
+```
+
+- Each question is a `<Collapsible.Trigger>` button with `ChevronRight` / `ChevronDown`
+- Answer shown in `<Collapsible.Content>`
+- Use `useState<Set<number>>` to track which items are open
+- Multiple items can be open simultaneously
+
+Return `null` if `faqs.length === 0`.
+
+---
+
+## Card: Local Requirements (`components/probate-research/cards/LocalRequirementsCard.tsx`)
+
+**Data sources:**
+- `county.localRequirements` — `string | null` — local filing requirements prose
+- `county.paymentMethods` — `string | null` — payment methods accepted (CreditCard icon)
+- `county.publicationNewspaper` — `string | null` — required publication newspaper (Newspaper icon)
+
+Return `null` if all three are null/empty.
 
 ---
 
@@ -619,6 +665,12 @@ Follow this sequence strictly — each step depends on the previous.
 3. **Route stub** — `app/probate-research/page.tsx` — minimal shell that renders "Probate Research" to confirm routing works
 4. **Filter bar** — `ResearchFilters.tsx` — verify URL params update correctly in browser
 5. **Left panel** — `StateCountyList.tsx` — accordion expand/collapse, county selection, search highlighting
-6. **Detail cards** — build and test each card independently (`QuickReferenceCard`, `FeesCard`, `TimelinesCard`, `CourthouseCard`, `ResourcesCard`, `EfilingChip`) with a hardcoded county object before wiring to real data
+6. **Detail cards** — build and test each card independently with a hardcoded county object before wiring to real data:
+   - `QuickReferenceCard`, `OverviewCard`
+   - `FeesCard`, `TimelinesCard`
+   - `CourthouseCard`
+   - `EfilingChip`
+   - `FilingStepsCard`, `LocalRequirementsCard`, `FormsCard`, `FAQsCard`
+   - `ResourcesCard`
 7. **Right panel** — `CountyDetailPanel.tsx` — compose cards, wire to URL params
 8. **Page shell** — wire everything together in `page.tsx`, verify URL state round-trips on page reload

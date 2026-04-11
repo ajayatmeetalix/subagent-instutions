@@ -1,12 +1,17 @@
 "use client"
 
-import { MapPin, ExternalLink, Zap } from "lucide-react"
+import { MapPin, ExternalLink, Zap, CalendarDays } from "lucide-react"
 import * as ScrollArea from "@radix-ui/react-scroll-area"
 import { slugToDisplayName, stateSlugToAbbr, cleanUrl } from "@/lib/jurisdictionUtils"
 import { QuickReferenceCard } from "./cards/QuickReferenceCard"
+import { OverviewCard } from "./cards/OverviewCard"
 import { FeesCard } from "./cards/FeesCard"
 import { TimelinesCard } from "./cards/TimelinesCard"
 import { CourthouseCard } from "./cards/CourthouseCard"
+import { FilingStepsCard } from "./cards/FilingStepsCard"
+import { FormsCard } from "./cards/FormsCard"
+import { FAQsCard } from "./cards/FAQsCard"
+import { LocalRequirementsCard } from "./cards/LocalRequirementsCard"
 import { ResourcesCard } from "./cards/ResourcesCard"
 import { EfilingChip } from "./cards/EfilingChip"
 import type { JurisdictionState, JurisdictionCounty } from "@/types/jurisdiction"
@@ -31,32 +36,39 @@ export function CountyDetailPanel({ selectedState, selectedCounty }: Props) {
   const efilingPortalUrl = cleanUrl(selectedCounty.efilingPortal)
   const hasEfilingInfo =
     selectedCounty.efilingRequired !== null || !!selectedCounty.efilingPortal
-  const hasFees = selectedCounty.fees && Object.keys(selectedCounty.fees).length > 0
-  const hasTimelines =
-    selectedCounty.timelines && Object.keys(selectedCounty.timelines).length > 0
+  const hasFees = (selectedCounty.fees?.length ?? 0) > 0
+  const hasTimelines = (selectedCounty.estimatedTimelines?.length ?? 0) > 0
 
   return (
     <ScrollArea.Root className="h-full">
       <ScrollArea.Viewport className="h-full w-full">
         {/* Header */}
         <div className="p-6 pb-4">
-          <h2 className="text-xl font-semibold text-[#1a1a2e]">
-            {slugToDisplayName(selectedCounty.slug)}
-          </h2>
-          <p className="text-sm text-[#6b675f] mt-0.5">
-            {slugToDisplayName(selectedState.slug)}
-            {abbr ? ` · ${abbr}` : ""}
-          </p>
-          {selectedCounty.url && (
-            <a
-              href={selectedCounty.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[#7c6fc4] hover:underline inline-flex items-center gap-1 mt-1"
-            >
-              View on SwiftProbate <ExternalLink size={11} />
-            </a>
-          )}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-[#1a1a2e]">
+                {slugToDisplayName(selectedCounty.slug)}
+              </h2>
+              <p className="text-sm text-[#6b675f] mt-0.5">
+                {slugToDisplayName(selectedState.slug)}
+                {abbr ? ` · ${abbr}` : ""}
+              </p>
+              <a
+                href={selectedCounty.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#7c6fc4] hover:underline inline-flex items-center gap-1 mt-1"
+              >
+                View on SwiftProbate <ExternalLink size={11} />
+              </a>
+            </div>
+            {selectedCounty.lastUpdated && (
+              <div className="flex items-center gap-1.5 text-xs text-[#9b9b9b] shrink-0 mt-1">
+                <CalendarDays size={12} />
+                <span>Updated {selectedCounty.lastUpdated}</span>
+              </div>
+            )}
+          </div>
           <hr className="border-[#e5e5e5] mt-4" />
         </div>
 
@@ -66,9 +78,13 @@ export function CountyDetailPanel({ selectedState, selectedCounty }: Props) {
             <QuickReferenceCard state={selectedState} />
           )}
 
+          {selectedCounty.overview && (
+            <OverviewCard overview={selectedCounty.overview} />
+          )}
+
           {hasFees && <FeesCard fees={selectedCounty.fees!} />}
 
-          {hasTimelines && <TimelinesCard timelines={selectedCounty.timelines!} />}
+          {hasTimelines && <TimelinesCard timelines={selectedCounty.estimatedTimelines!} />}
 
           <CourthouseCard county={selectedCounty} />
 
@@ -92,6 +108,24 @@ export function CountyDetailPanel({ selectedState, selectedCounty }: Props) {
                 )}
               </div>
             </div>
+          )}
+
+          {(selectedCounty.filingSteps?.length ?? 0) > 0 && (
+            <FilingStepsCard steps={selectedCounty.filingSteps!} />
+          )}
+
+          <LocalRequirementsCard
+            localRequirements={selectedCounty.localRequirements ?? null}
+            paymentMethods={selectedCounty.paymentMethods ?? null}
+            publicationNewspaper={selectedCounty.publicationNewspaper ?? null}
+          />
+
+          {(selectedCounty.forms?.length ?? 0) > 0 && (
+            <FormsCard forms={selectedCounty.forms!} />
+          )}
+
+          {selectedCounty.faqs.length > 0 && (
+            <FAQsCard faqs={selectedCounty.faqs} />
           )}
 
           {selectedCounty.resources.length > 0 && (

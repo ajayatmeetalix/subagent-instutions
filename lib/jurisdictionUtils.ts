@@ -103,19 +103,18 @@ export function findCounty(
 
 /**
  * Get the best available phone number for a county.
- * Prefers county.quickReference.Phone over county.courthouse.phones[0].
+ * Uses county.courthouse.phone.
  */
 export function getPrimaryPhone(county: JurisdictionCounty): string | null {
-  return county.quickReference?.Phone ?? county.courthouse?.phones?.[0] ?? null
+  return county.courthouse?.phone ?? null
 }
 
 /**
- * Get the best available court website URL for a county.
- * Uses county.courthouse.websites[0].
- * Does NOT use county.quickReference.Website (often plain text, not a URL).
+ * Get the best available fax number for a county.
+ * Uses county.courthouse.fax.
  */
-export function getPrimaryWebsite(county: JurisdictionCounty): string | null {
-  return county.courthouse?.websites?.[0] ?? null
+export function getPrimaryFax(county: JurisdictionCounty): string | null {
+  return county.courthouse?.fax ?? null
 }
 
 /**

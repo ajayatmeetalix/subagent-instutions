@@ -35,7 +35,7 @@ This is a prototype. There is no full backend.
 | `components/probate-research/` | All Probate Research Tool components |
 | `lib/jurisdictionUtils.ts` | Pure helper functions for probate research data |
 | `types/jurisdiction.ts` | TypeScript types for `swiftprobate_full.json` |
-| `swiftprobate_full.json` | Probate jurisdiction data — 51 states, ~3,100 counties (static import only) |
+| `swiftprobate_full.json` | Probate jurisdiction data — 51 states, ~3,100 counties (static import only) — ~32 MB |
 
 ---
 
@@ -66,6 +66,11 @@ components/probate-research/
     FeesCard.tsx
     TimelinesCard.tsx
     QuickReferenceCard.tsx
+    OverviewCard.tsx
+    FilingStepsCard.tsx
+    FormsCard.tsx
+    FAQsCard.tsx
+    LocalRequirementsCard.tsx
     ResourcesCard.tsx
     EfilingChip.tsx
 lib/jurisdictionUtils.ts               ← pure helpers (no React, no hooks)
