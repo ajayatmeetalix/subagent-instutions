@@ -450,13 +450,23 @@ Omit entire section if `efilingRequired === null && !efilingPortal`.
 
 **Data source:** `county.overview` — `string | null`
 
-Renders the county-level overview prose as a paragraph.
+The scraped text has sentences concatenated without spaces (e.g. `"death.Alabama"`).
+Use `formatProse(overview)` to normalize and split into sentence-level paragraphs,
+then render each as a separate `<p>` with `gap-2` spacing between them.
 
 ```tsx
 type Props = { overview: string }
+
+const paragraphs = formatProse(overview)
+
+<div className="flex flex-col gap-2">
+  {paragraphs.map((p, i) => (
+    <p key={i} className="text-sm text-[#3d3d3d] leading-relaxed">{p}</p>
+  ))}
+</div>
 ```
 
-Return `null` if `!overview?.trim()`.
+Return `null` if `formatProse(overview).length === 0`.
 
 ---
 
@@ -528,7 +538,7 @@ Return `null` if `faqs.length === 0`.
 ## Card: Local Requirements (`components/probate-research/cards/LocalRequirementsCard.tsx`)
 
 **Data sources:**
-- `county.localRequirements` — `string | null` — local filing requirements prose
+- `county.localRequirements` — `string | null` — scraped prose, sentences concatenated. Use `formatProse()` to split into paragraphs before rendering.
 - `county.paymentMethods` — `string | null` — payment methods accepted (CreditCard icon)
 - `county.publicationNewspaper` — `string | null` — required publication newspaper (Newspaper icon)
 
@@ -658,19 +668,22 @@ The page shell's only job is wiring: reading URL state, running the filter memo,
 
 ## Build Order
 
-Follow this sequence strictly — each step depends on the previous.
+**All steps below are complete.** The research tool is fully shipped.
 
-1. **Types** — `types/jurisdiction.ts` — all types from `docs/DATA_SCHEMA.md`
-2. **Utils** — `lib/jurisdictionUtils.ts` — all helper functions; think through logic before writing
-3. **Route stub** — `app/probate-research/page.tsx` — minimal shell that renders "Probate Research" to confirm routing works
-4. **Filter bar** — `ResearchFilters.tsx` — verify URL params update correctly in browser
-5. **Left panel** — `StateCountyList.tsx` — accordion expand/collapse, county selection, search highlighting
-6. **Detail cards** — build and test each card independently with a hardcoded county object before wiring to real data:
-   - `QuickReferenceCard`, `OverviewCard`
+1. **Types** — `types/jurisdiction.ts` ✅
+2. **Utils** — `lib/jurisdictionUtils.ts` ✅ (includes `formatProse()`)
+3. **Route stub** — `app/probate-research/page.tsx` ✅
+4. **Filter bar** — `ResearchFilters.tsx` ✅
+5. **Left panel** — `StateCountyList.tsx` ✅
+6. **Detail cards** ✅
+   - `QuickReferenceCard`, `OverviewCard` (uses `formatProse()`)
    - `FeesCard`, `TimelinesCard`
    - `CourthouseCard`
    - `EfilingChip`
-   - `FilingStepsCard`, `LocalRequirementsCard`, `FormsCard`, `FAQsCard`
+   - `FilingStepsCard`, `LocalRequirementsCard` (uses `formatProse()`), `FormsCard`, `FAQsCard`
    - `ResourcesCard`
-7. **Right panel** — `CountyDetailPanel.tsx` — compose cards, wire to URL params
-8. **Page shell** — wire everything together in `page.tsx`, verify URL state round-trips on page reload
+7. **Right panel** — `CountyDetailPanel.tsx` ✅
+8. **Page shell** — fully wired ✅
+
+The next work is on the **Estate Jobs Board** (`app/page.tsx`), not the Research Tool.
+See `new-feature-specs/SPRINT_STATUS.md` for the current sprint plan and what to build next.

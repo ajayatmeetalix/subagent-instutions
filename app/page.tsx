@@ -5,6 +5,20 @@ import { format } from "date-fns"
 import { Home, Briefcase, FileText, Trash2, Users, Building2, Copy, ChevronRight, ArrowLeft, Download, Plus, Menu, RefreshCw, User, CreditCard, DollarSign, Lock, Clipboard, UserCircle, BarChart3, FileCheck, UserPlus, CircleDollarSign, MousePointer, FolderOpen, Search, Edit, Folder, Grid, Upload, FolderPlus, MoreVertical, Trash, Edit2, X, File, CheckCircle, Image, FileImage, FolderInput, Eye, CalendarDays, Clock, CheckCircle2, AlertCircle, Loader2, AlertTriangle, Ban, ChevronDown, ClipboardList, ArrowRight, Map } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import rawJurisdictionData from "../swiftprobate_full.json"
+import type { JurisdictionState } from "@/types/jurisdiction"
+import { findState, findCounty, formatProse, slugToDisplayName, stateSlugToAbbr } from "@/lib/jurisdictionUtils"
+
+const jurisdictionData = rawJurisdictionData as JurisdictionState[]
+
+// Mock estate is California · Los Angeles County (matches SAUL mock data)
+const MOCK_ESTATE_STATE_SLUG = "california"
+const MOCK_ESTATE_COUNTY_SLUG = "los-angeles-county"
+const MOCK_ESTATE_CASE_NUMBER = "24STPB01882"
+const MOCK_ESTATE_AUTHORITY_TYPE = "Probate — Independent Administration"
+
+const estateJurisdictionState = findState(jurisdictionData, MOCK_ESTATE_STATE_SLUG)
+const estateJurisdictionCounty = findCounty(jurisdictionData, MOCK_ESTATE_STATE_SLUG, MOCK_ESTATE_COUNTY_SLUG)
 
 const DEADLINE_CATEGORIES = [
   {
@@ -159,7 +173,7 @@ const JOBS_BOARD_TASKS = [
     createdAt: "Apr 7, 2026 5:52 PM",
     updatedAt: "Apr 7, 2026 5:52 PM",
     status: "todo",
-    priority: "",
+    priority: "high",
     jobVersion: 1,
     jobId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     steps: { done: 0, total: 7 },
@@ -220,6 +234,49 @@ const JOBS_BOARD_TASKS = [
   { id: "c1", slug: "review_new_settlement_starting_point", title: "New Settlement Created - Please review", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 2:40 PM", updatedAt: "Apr 6, 2026 2:40 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 3, total: 3 }, description: "", stepItems: [] },
   { id: "c2", slug: "notify_the_va_of_the_decedent", title: "Notify the VA of the Decedent's Passing", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 3:14 PM", updatedAt: "Apr 6, 2026 3:14 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 3, total: 3 }, description: "", stepItems: [] },
   { id: "c3", slug: "define_plan_for_probate_lawyer", title: "Define plan for probate lawyer engagement", assignee: "Admin Test", assigneeEmail: "", reviewer: "", createdAt: "Apr 6, 2026 3:18 PM", updatedAt: "Apr 6, 2026 3:18 PM", status: "completed", priority: "", jobVersion: 1, jobId: "", steps: { done: 2, total: 2 }, description: "", stepItems: [] },
+  {
+    id: "w1",
+    slug: "publish_creditor_notice_newspaper",
+    title: "Publish Creditor Notice in Newspaper",
+    assignee: "Delaney Haley",
+    assigneeEmail: "delaney.haley@meetalix.com",
+    reviewer: "",
+    createdAt: "Apr 9, 2026 10:00 AM",
+    updatedAt: "Apr 11, 2026 2:15 PM",
+    status: "in-progress",
+    priority: "high",
+    jobVersion: 1,
+    jobId: "d5e6f7a8-b9c0-1234-defa-567890123456",
+    steps: { done: 2, total: 4 },
+    description: "Publish the Notice of Petition to Administer Estate in a newspaper of general circulation in Los Angeles County. The Los Angeles Daily Journal has been identified as the required legal organ. Contact them to schedule publication before the court hearing date.",
+    stepItems: [
+      { id: 1, text: "Confirm required publication newspaper — Los Angeles Daily Journal for LA County." },
+      { id: 2, text: "Contact newspaper and provide notice text for publication." },
+      { id: 3, text: "Obtain affidavit of publication from the newspaper after run." },
+      { id: 4, text: "File affidavit of publication with the Superior Court before the hearing." },
+    ],
+  },
+  {
+    id: "w2",
+    slug: "coordinate_probate_attorney_engagement",
+    title: "Coordinate Probate Attorney Engagement",
+    assignee: "Clayton Noyes",
+    assigneeEmail: "clayton.noyes@meetalix.com",
+    reviewer: "delaney.haley@meetalix.com",
+    createdAt: "Apr 8, 2026 4:00 PM",
+    updatedAt: "Apr 11, 2026 9:30 AM",
+    status: "awaiting-review",
+    priority: "medium",
+    jobVersion: 1,
+    jobId: "e6f7a8b9-c0d1-2345-efab-678901234567",
+    steps: { done: 3, total: 3 },
+    description: "Engage a probate attorney for the formal court filings. An attorney has been identified and the retainer agreement has been drafted. Awaiting supervisor review and sign-off before sending to the executor for signature.",
+    stepItems: [
+      { id: 1, text: "Identify a qualified probate attorney licensed in California." },
+      { id: 2, text: "Draft retainer agreement and confirm scope of representation." },
+      { id: 3, text: "Submit retainer for review, then send to executor for signature." },
+    ],
+  },
 ]
 
 const SAUL_CLASSIFICATION_RESPONSE = {
@@ -746,7 +803,7 @@ export default function EstateManagementPage() {
       shortId: "168a8b40-df79-...",
       name: "Bunny 2Folger",
       executors: ["Tim Timson"],
-      status: "Active",
+      status: "Completed",
       createdAt: "09/14/2023",
       assignedTo: "None assigned",
       email: "bunny.folger@meetalix.com",
@@ -856,30 +913,6 @@ export default function EstateManagementPage() {
   const [showEditEstatePage, setShowEditEstatePage] = useState(false)
   const [editForm, setEditForm] = useState<any>({})
   const [estateData, setEstateData] = useState<Record<string, any>>({})
-  const [legalEditSection, setLegalEditSection] = useState<string | null>(null)
-  const [legalEditForm, setLegalEditForm] = useState<any>({})
-  // Sample data so prototypes look populated
-  const [legalInfo, setLegalInfo] = useState<Record<string, any>>({
-    "862831cb-8e8d-44b5-bde5-03583031d3cb": {
-      authorityType: "Probate (Independent)",
-      caseNumber: "24-PR-00412",
-      jurisdiction: "Essex County Surrogate's Court",
-      bondStatus: "Required",
-      bondAmount: "25000",
-      courtStreet: "465 Dr. Martin Luther King Jr. Blvd",
-      courtCity: "Newark",
-      courtState: "NJ",
-      courtZip: "07102",
-      courtPhone: "(973) 693-6800",
-      courtWebsite: "https://www.njcourts.gov/courts/superior/surrogates",
-      courtHoursPreset: "Mon–Fri, 8:30am–4:30pm",
-      courtHoursNote: "",
-      refereeName: "",
-      refereePhone: "",
-      refereeAddress: "",
-      refereeEmail: "",
-    }
-  })
 
   // Folder management functions
   const handleRenameFolder = (oldName: string, newName: string) => {
@@ -1827,15 +1860,6 @@ export default function EstateManagementPage() {
               >
                 <Home className="w-[18px] h-[18px] flex-shrink-0" />
                 <span className="text-[13px] whitespace-nowrap">Home</span>
-              </button>
-              <button
-                onClick={() => { setActiveNav("legal"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md transition-colors ${activeNav === "legal" ? "bg-[#ececec] text-[#3d3d3d]" : "text-[#6b675f] hover:bg-[#ececec] hover:text-[#3d3d3d]"}`}
-                title="Legal"
-              >
-                <FileCheck className="w-[18px] h-[18px] flex-shrink-0" />
-                <span className="text-[13px] whitespace-nowrap">Legal</span>
-                <span className="ml-auto text-[9px] font-semibold text-amber-600 bg-amber-100 border border-amber-200 rounded px-1 py-0.5 leading-tight">PROTO</span>
               </button>
               <button
                 onClick={() => { setActiveNav("jobs-board"); setSidebarOpen(false); }}
@@ -2903,295 +2927,6 @@ export default function EstateManagementPage() {
                   </div>
                 </div>
               </>
-            ) : activeNav === "legal" ? (
-              // Legal View
-              <div className="flex-1 overflow-auto bg-[#f5f4f2]">
-                {(() => {
-                  const legal = legalInfo[selectedEstate.id] || {}
-                  const formatDate = (d: string) => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—"
-                  const lField = (field: string, placeholder = "", type = "text") => (
-                    <input
-                      type={type}
-                      value={legalEditForm[field] || ""}
-                      onChange={e => setLegalEditForm((p: any) => ({ ...p, [field]: e.target.value }))}
-                      placeholder={placeholder}
-                      className="w-full h-9 px-3 text-sm bg-white border border-[#d0d0d0] rounded-md text-[#3d3d3d] placeholder:text-[#c0c0c0] focus:outline-none focus:ring-2 focus:ring-[#3d3d3d]"
-                    />
-                  )
-                  const lLabel = (text: string) => <label className="block text-xs font-medium text-[#6b675f] mb-1">{text}</label>
-                  const lVal = (label: string, value: string) => (
-                    <div>
-                      <p className="text-xs text-[#6b675f] mb-1.5">{label}</p>
-                      <p className="text-sm font-semibold text-[#3d3d3d]">{value || "—"}</p>
-                    </div>
-                  )
-                  const saveSection = () => {
-                    setLegalInfo((prev: any) => ({ ...prev, [selectedEstate.id]: { ...(prev[selectedEstate.id] || {}), ...legalEditForm } }))
-                    setLegalEditSection(null)
-                  }
-                  const startEdit = (section: string) => { setLegalEditForm({ ...legal }); setLegalEditSection(section) }
-                  const CardEditBtn = ({ section }: { section: string }) => (
-                    <button onClick={() => startEdit(section)} className="flex items-center gap-1 text-xs text-[#6b675f] hover:text-[#3d3d3d] transition-colors">
-                      <Edit className="w-3 h-3" /><span>Edit</span>
-                    </button>
-                  )
-                  const CardActions = () => (
-                    <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[#f0f0f0]">
-                      <button onClick={() => setLegalEditSection(null)} className="h-8 px-3 text-xs font-medium text-[#6b675f] hover:text-[#3d3d3d] border border-[#d0d0d0] hover:border-[#3d3d3d] rounded-md transition-colors">Cancel</button>
-                      <button onClick={saveSection} className="h-8 px-4 text-xs font-medium text-white bg-[#3d3d3d] hover:bg-[#2d2d2d] rounded-md transition-colors">Save</button>
-                    </div>
-                  )
-                  return (
-                    <div className="max-w-4xl mx-auto py-6 px-6 space-y-5">
-
-                      {/* Legal Authority */}
-                      <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
-                        <div className="border-l-4 border-[#3d3d3d] px-5 py-3 bg-[#fafafa] border-b border-[#e5e5e5] flex items-center justify-between">
-                          <h3 className="text-[11px] font-bold text-[#3d3d3d] uppercase tracking-widest">Legal Authority</h3>
-                          {legalEditSection !== "authority" && <CardEditBtn section="authority" />}
-                        </div>
-                        {legalEditSection === "authority" ? (
-                          <>
-                            <div className="px-5 py-5 space-y-4">
-                              <div className="grid grid-cols-3 gap-5">
-                                <div>
-                                  {lLabel("Authority Type")}
-                                  <select
-                                    value={legalEditForm.authorityType || ""}
-                                    onChange={e => setLegalEditForm((p: any) => ({ ...p, authorityType: e.target.value }))}
-                                    className="w-full h-9 px-3 text-sm bg-white border border-[#d0d0d0] rounded-md text-[#3d3d3d] focus:outline-none focus:ring-2 focus:ring-[#3d3d3d]"
-                                  >
-                                    <option value="">Select…</option>
-                                    <option value="Trust">Trust</option>
-                                    <option value="Estate (SEA)">Estate (SEA)</option>
-                                    <option value="Estate (Probate)">Estate (Probate)</option>
-                                    <option value="Estate (Lawyer Required)">Estate (Lawyer Required)</option>
-                                    <option value="Trust & Estate">Trust &amp; Estate</option>
-                                  </select>
-                                </div>
-                                <div>{lLabel("Case #")}{lField("caseNumber", "e.g. 24-PR-00412")}</div>
-                                <div>{lLabel("Jurisdiction")}{lField("jurisdiction", "e.g. Essex County Surrogate's Court")}</div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-5 items-start">
-                                <div>
-                                  {lLabel("Bond")}
-                                  <select
-                                    value={legalEditForm.bondStatus || ""}
-                                    onChange={e => setLegalEditForm((p: any) => ({ ...p, bondStatus: e.target.value }))}
-                                    className="w-full h-9 px-3 text-sm bg-white border border-[#d0d0d0] rounded-md text-[#3d3d3d] focus:outline-none focus:ring-2 focus:ring-[#3d3d3d]"
-                                  >
-                                    <option value="">Select…</option>
-                                    <option value="Waived">Waived</option>
-                                    <option value="Required">Required</option>
-                                  </select>
-                                </div>
-                                {legalEditForm.bondStatus === "Required" && (
-                                  <div>{lLabel("Bond Amount")}{lField("bondAmount", "e.g. 25000")}</div>
-                                )}
-                              </div>
-                            </div>
-                            <CardActions />
-                          </>
-                        ) : (
-                          <div className="px-5 py-5 space-y-5">
-                            <div className="grid grid-cols-3 gap-8">
-                              {lVal("Authority Type", legal.authorityType)}
-                              <div>
-                                <p className="text-xs text-[#6b675f] mb-1.5">Case #</p>
-                                <p className="text-sm font-semibold text-[#3d3d3d] font-mono">{legal.caseNumber || "—"}</p>
-                              </div>
-                              {lVal("Jurisdiction", legal.jurisdiction)}
-                            </div>
-                            <div className="grid grid-cols-3 gap-8">
-                              <div>
-                                <p className="text-xs text-[#6b675f] mb-1.5">Bond</p>
-                                <p className="text-sm font-semibold text-[#3d3d3d]">{legal.bondStatus || "—"}</p>
-                              </div>
-                              {legal.bondStatus === "Required" && (
-                                <div>
-                                  <p className="text-xs text-[#6b675f] mb-1.5">Bond Amount</p>
-                                  <p className="text-sm font-semibold text-[#3d3d3d]">${Number(legal.bondAmount || 0).toLocaleString()}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Court Details */}
-                      <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
-                        <div className="border-l-4 border-[#3d3d3d] px-5 py-3 bg-[#fafafa] border-b border-[#e5e5e5] flex items-center justify-between">
-                          <h3 className="text-[11px] font-bold text-[#3d3d3d] uppercase tracking-widest">Court Details</h3>
-                          {legalEditSection !== "court" && <CardEditBtn section="court" />}
-                        </div>
-                        {legalEditSection === "court" ? (
-                          <>
-                            <div className="px-5 py-5 space-y-4">
-                              <div>{lLabel("Street Address")}{lField("courtStreet", "Street address")}</div>
-                              <div className="grid grid-cols-3 gap-3">
-                                <div className="col-span-1">{lLabel("City")}{lField("courtCity", "City")}</div>
-                                <div>{lLabel("State")}{lField("courtState", "State")}</div>
-                                <div>{lLabel("ZIP")}{lField("courtZip", "ZIP")}</div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-5">
-                                <div>{lLabel("Phone")}{lField("courtPhone", "e.g. (973) 693-6800")}</div>
-                                <div>{lLabel("Website")}{lField("courtWebsite", "https://")}</div>
-                              </div>
-                              <div>
-                                {lLabel("Hours of Operation")}
-                                <select
-                                  value={legalEditForm.courtHoursPreset || ""}
-                                  onChange={e => setLegalEditForm((p: any) => ({ ...p, courtHoursPreset: e.target.value }))}
-                                  className="w-full h-9 px-3 text-sm bg-white border border-[#d0d0d0] rounded-md text-[#3d3d3d] focus:outline-none focus:ring-2 focus:ring-[#3d3d3d]"
-                                >
-                                  <option value="">Select hours…</option>
-                                  <option>Mon–Fri, 8:00am–4:00pm</option>
-                                  <option>Mon–Fri, 8:30am–4:30pm</option>
-                                  <option>Mon–Fri, 9:00am–5:00pm</option>
-                                  <option>Mon–Fri, 8:00am–5:00pm</option>
-                                  <option>Mon–Thu, 8:30am–4:30pm</option>
-                                  <option>Other</option>
-                                </select>
-                                <input
-                                  type="text"
-                                  value={legalEditForm.courtHoursNote || ""}
-                                  onChange={e => setLegalEditForm((p: any) => ({ ...p, courtHoursNote: e.target.value }))}
-                                  placeholder="Exceptions or notes (e.g. Closed 12–1pm for lunch)"
-                                  className="w-full h-9 px-3 mt-2 text-sm bg-white border border-[#d0d0d0] rounded-md text-[#3d3d3d] placeholder:text-[#c0c0c0] focus:outline-none focus:ring-2 focus:ring-[#3d3d3d]"
-                                />
-                              </div>
-                            </div>
-                            <CardActions />
-                          </>
-                        ) : (
-                          <div className="px-5 py-5 space-y-5">
-                            <div>
-                              <p className="text-xs text-[#6b675f] mb-1.5">Court Address</p>
-                              {legal.courtStreet ? (
-                                <div className="text-sm font-semibold text-[#3d3d3d] leading-relaxed">
-                                  <p>{legal.courtStreet}</p>
-                                  <p>{legal.courtCity}, {legal.courtState} {legal.courtZip}</p>
-                                </div>
-                              ) : <p className="text-sm font-semibold text-[#3d3d3d]">—</p>}
-                            </div>
-                            <div className="grid grid-cols-3 gap-8">
-                              {lVal("Phone", legal.courtPhone)}
-                              <div>
-                                <p className="text-xs text-[#6b675f] mb-1.5">Website</p>
-                                {legal.courtWebsite
-                                  ? <a href={legal.courtWebsite} target="_blank" rel="noreferrer" className="text-sm font-semibold text-blue-600 hover:underline truncate block">{legal.courtWebsite}</a>
-                                  : <p className="text-sm font-semibold text-[#3d3d3d]">—</p>}
-                              </div>
-                              <div>
-                                <p className="text-xs text-[#6b675f] mb-1.5">Hours of Operation</p>
-                                <p className="text-sm font-semibold text-[#3d3d3d]">{legal.courtHoursPreset || "—"}</p>
-                                {legal.courtHoursNote && <p className="text-xs text-[#6b675f] mt-1">{legal.courtHoursNote}</p>}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Probate Referee */}
-                      <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
-                        <div className="border-l-4 border-[#3d3d3d] px-5 py-3 bg-[#fafafa] border-b border-[#e5e5e5] flex items-center justify-between">
-                          <h3 className="text-[11px] font-bold text-[#3d3d3d] uppercase tracking-widest">Probate Referee</h3>
-                          {legalEditSection !== "referee" && <CardEditBtn section="referee" />}
-                        </div>
-                        {legalEditSection === "referee" ? (
-                          <>
-                            <div className="px-5 py-5 space-y-5">
-                              <div className="grid grid-cols-2 gap-5">
-                                <div>{lLabel("Name")}{lField("refereeName", "Full name")}</div>
-                                <div>{lLabel("Phone")}{lField("refereePhone", "e.g. (415) 555-0100")}</div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-5">
-                                <div>{lLabel("Address")}{lField("refereeAddress", "Street, City, State, ZIP")}</div>
-                                <div>{lLabel("Email")}{lField("refereeEmail", "e.g. referee@example.com")}</div>
-                              </div>
-                            </div>
-                            <CardActions />
-                          </>
-                        ) : (
-                          <div className="px-5 py-5 space-y-4">
-                            <div className="grid grid-cols-2 gap-8">
-                              {lVal("Name", legal.refereeName)}
-                              {lVal("Phone", legal.refereePhone)}
-                            </div>
-                            <div className="grid grid-cols-2 gap-8">
-                              {lVal("Address", legal.refereeAddress)}
-                              {lVal("Email", legal.refereeEmail)}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Key Dates & Milestones — read-only, sourced from Timeline */}
-                      <div className="bg-white rounded-lg border border-[#e5e5e5] overflow-hidden">
-                        <div className="border-l-4 border-[#6b675f] px-5 py-3 bg-[#fafafa] border-b border-[#e5e5e5] flex items-center justify-between">
-                          <div>
-                            <h3 className="text-[11px] font-bold text-[#3d3d3d] uppercase tracking-widest">Key Dates &amp; Milestones</h3>
-                            <p className="text-[11px] text-[#9b9b9b] mt-0.5">Sourced from Timeline — edit there to make changes</p>
-                          </div>
-                          <button
-                            onClick={() => setActiveNav("timeline")}
-                            className="flex items-center gap-1 text-xs text-[#6b675f] hover:text-[#3d3d3d] transition-colors"
-                          >
-                            <span>Go to Timeline</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                        {(() => {
-                          const allDates: Array<{ label: string; date: string; notes: string; type: "milestone" | "keydate" }> = [
-                            ...milestones.map(m => ({
-                              label: m.name,
-                              date: m.date,
-                              notes: m.description || "",
-                              type: "milestone" as const
-                            })),
-                            ...keyDates.map(kd => ({
-                              label: kd.title,
-                              date: kd.date,
-                              notes: kd.notes || "",
-                              type: "keydate" as const
-                            }))
-                          ].sort((a, b) => {
-                            const parseDate = (d: string) => {
-                              const iso = Date.parse(d)
-                              return isNaN(iso) ? Date.parse(new Date(d).toISOString()) : iso
-                            }
-                            return parseDate(a.date) - parseDate(b.date)
-                          })
-                          if (allDates.length === 0) {
-                            return (
-                              <div className="px-5 py-8 text-center text-sm text-[#9b9b9b]">
-                                No milestones or key dates yet. Add them in Timeline.
-                              </div>
-                            )
-                          }
-                          return (
-                            <div className="divide-y divide-[#f0f0f0]">
-                              {allDates.map((item, i) => (
-                                <div key={i} className="px-5 py-3 flex items-start gap-4">
-                                  <span className={`mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold flex-shrink-0 ${item.type === "milestone" ? "bg-[#ececec] text-[#3d3d3d]" : "bg-blue-50 text-blue-700"}`}>
-                                    {item.type === "milestone" ? "Milestone" : "Key Date"}
-                                  </span>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[#3d3d3d]">{item.label}</p>
-                                    {item.notes && <p className="text-xs text-[#6b675f] mt-0.5 leading-relaxed">{item.notes}</p>}
-                                  </div>
-                                  <p className="text-xs text-[#6b675f] flex-shrink-0 mt-0.5">{item.date}</p>
-                                </div>
-                              ))}
-                            </div>
-                          )
-                        })()}
-                      </div>
-
-                    </div>
-                  )
-                })()}
-              </div>
             ) : activeNav === "jobs-board" ? (
               // Jobs Board View
               <div className="flex-1 flex flex-col overflow-hidden">
@@ -3213,6 +2948,20 @@ export default function EstateManagementPage() {
                   {selectedEstate.executors?.length > 0 && (
                     <p className="text-sm text-[#6b675f]">Executor(s):&nbsp;&nbsp;{selectedEstate.executors.join(", ")}</p>
                   )}
+                  {estateJurisdictionState && estateJurisdictionCounty && (
+                    <a
+                      href={`/probate-research?state=${MOCK_ESTATE_STATE_SLUG}&county=${MOCK_ESTATE_COUNTY_SLUG}`}
+                      className="inline-flex items-center gap-1 mt-1.5 text-xs text-[#7c6fc4] hover:text-[#5a4fa0] hover:underline"
+                    >
+                      <Map size={11} />
+                      {estateJurisdictionCounty.name}, {stateSlugToAbbr(MOCK_ESTATE_STATE_SLUG) ?? slugToDisplayName(MOCK_ESTATE_STATE_SLUG)} · View jurisdiction rules
+                    </a>
+                  )}
+                  <p className="mt-1 text-xs text-[#9b9b9b]">
+                    Case&nbsp;<span className="font-mono">{MOCK_ESTATE_CASE_NUMBER}</span>
+                    <span className="mx-1.5">·</span>
+                    {MOCK_ESTATE_AUTHORITY_TYPE}
+                  </p>
                 </div>
 
                 {/* Toolbar */}
@@ -3244,13 +2993,16 @@ export default function EstateManagementPage() {
 
                 {/* Kanban Board */}
                 <div className="flex-1 overflow-auto p-5">
+
                   {(() => {
                     const tasksWithState = JOBS_BOARD_TASKS
                       .filter(t => taskVisibility[t.id] !== false)
                       .map(t => ({ ...t, status: (taskStatuses[t.id] ?? t.status) as typeof t.status }))
-                    const filtered = tasksWithState.filter(t =>
-                      !jobsSearch || t.title.toLowerCase().includes(jobsSearch.toLowerCase()) || t.slug.toLowerCase().includes(jobsSearch.toLowerCase())
-                    )
+                    const filtered = tasksWithState.filter(t => {
+                      if (jobsSearch && !t.title.toLowerCase().includes(jobsSearch.toLowerCase()) && !t.slug.toLowerCase().includes(jobsSearch.toLowerCase())) return false
+                      if (jobsPriority !== "all" && t.priority !== jobsPriority) return false
+                      return true
+                    })
                     const todoTasks = filtered.filter(t => t.status === "todo")
                     const inProgressTasks = filtered.filter(t => t.status === "in-progress")
                     const awaitingTasks = filtered.filter(t => t.status === "awaiting-review")
@@ -3267,18 +3019,26 @@ export default function EstateManagementPage() {
                           <p className="text-[10px] text-[#9b9b9b] font-mono mb-1.5 leading-tight truncate">{task.slug}</p>
                           <div className="flex items-start justify-between gap-2 mb-3">
                             <p className="text-sm font-semibold text-[#3d3d3d] leading-snug">{task.title}</p>
-                            {isProcessing && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-                                <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                                Processing
-                              </span>
-                            )}
-                            {hasError && !isProcessing && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 shrink-0">
-                                <AlertCircle className="w-2.5 h-2.5" />
-                                Error
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1 shrink-0">
+                              {task.priority === "high" && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-50 text-red-600 border border-red-200">High</span>
+                              )}
+                              {task.priority === "medium" && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">Medium</span>
+                              )}
+                              {isProcessing && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                  Processing
+                                </span>
+                              )}
+                              {hasError && !isProcessing && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                                  <AlertCircle className="w-2.5 h-2.5" />
+                                  Error
+                                </span>
+                              )}
+                            </div>
                           </div>
                           {task.steps && (
                             <div className="mb-3">
@@ -5485,7 +5245,17 @@ export default function EstateManagementPage() {
                         ))}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#3d3d3d] text-[13px]">{estate.status}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
+                        estate.status === "Active"
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : estate.status === "Completed"
+                          ? "bg-blue-50 text-blue-600 border-blue-200"
+                          : estate.status === "Churned"
+                          ? "bg-red-50 text-red-600 border-red-200"
+                          : "bg-gray-50 text-gray-500 border-gray-200"
+                      }`}>{estate.status}</span>
+                    </td>
                     <td className="px-4 py-3">
                       <svg
                         className="w-4 h-4 text-[#3d3d3d]"

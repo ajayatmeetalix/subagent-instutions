@@ -1,4 +1,5 @@
 import { Newspaper, CreditCard } from "lucide-react"
+import { formatProse } from "@/lib/jurisdictionUtils"
 
 type Props = {
   localRequirements: string | null
@@ -14,16 +15,22 @@ export function LocalRequirementsCard({
   const hasContent = localRequirements || paymentMethods || publicationNewspaper
   if (!hasContent) return null
 
+  const requirementParagraphs = localRequirements ? formatProse(localRequirements) : []
+
   return (
     <div className="border border-[#e5e5e5] rounded-lg p-4 bg-white">
       <p className="text-xs font-semibold text-[#6b675f] uppercase tracking-wide mb-3">
         Local Requirements
       </p>
       <div className="flex flex-col gap-3">
-        {localRequirements && (
+        {requirementParagraphs.length > 0 && (
           <div>
             <p className="text-xs text-[#6b675f] mb-1">Requirements</p>
-            <p className="text-sm text-[#1a1a2e] leading-relaxed">{localRequirements}</p>
+            <div className="flex flex-col gap-1.5">
+              {requirementParagraphs.map((p, i) => (
+                <p key={i} className="text-sm text-[#1a1a2e] leading-relaxed">{p}</p>
+              ))}
+            </div>
           </div>
         )}
 

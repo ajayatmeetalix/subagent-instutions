@@ -244,6 +244,9 @@ What's wrong in this example — exactly what to watch for:
 | `county.efilingPortal` | May have trailing punctuation e.g. `")."` | Run through `cleanUrl()` |
 | `county.courthouse.hours` | Prefixed with `"Hours: "` | Strip with `.replace(/^Hours:\s*/i, "")` |
 | `county.forms[].url` | May be relative or malformed | Run through `cleanUrl()` |
+| `county.overview` | Long run-together prose, sentences concatenated without spaces | Split via `formatProse()` and render as multiple `<p>` elements |
+| `county.localRequirements` | Same as above | Split via `formatProse()` |
+| `state.overview` | Same as above (if displayed) | Split via `formatProse()` |
 
 ### Fields that must NEVER be displayed
 | Field | Problem |
@@ -309,6 +312,20 @@ export function urlToDisplayLabel(url: string): string
 
 /** "lettersTestamentary" → "Letters Testamentary" */
 export function camelToTitleCase(str: string): string
+
+/**
+ * Normalize scraped prose and split into readable paragraphs.
+ * Inserts a newline at every sentence boundary (handles both missing-space cases
+ * like "death.Alabama" and normal ". The" cases), then splits into an array of
+ * paragraph strings for rendering as separate <p> elements.
+ *
+ * Use this for: county.overview, county.localRequirements, and any other
+ * long scraped prose field.
+ *
+ * "Tuscaloosa County is located...time of death.Alabama probate is governed..."
+ * → ["Tuscaloosa County is located...time of death.", "Alabama probate is governed..."]
+ */
+export function formatProse(text: string): string[]
 
 /**
  * Filter the full jurisdiction data array.

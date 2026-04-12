@@ -144,6 +144,20 @@ export function urlToDisplayLabel(url: string): string {
 }
 
 /**
+ * Normalize scraped prose where sentences are concatenated without spaces.
+ * "death.Alabama" → "death. Alabama"
+ * Returns an array of sentence-level paragraph strings.
+ */
+export function formatProse(text: string): string[] {
+  if (!text?.trim()) return []
+  const normalized = text
+    .replace(/([.!?])([A-Z])/g, '$1 $2')
+    .trim()
+  const sentences = normalized.match(/[^.!?]*[.!?]+/g) ?? [normalized]
+  return sentences.map(s => s.trim()).filter(s => s.length > 0)
+}
+
+/**
  * Convert a camelCase key to Title Case with spaces.
  * "lettersTestamentary" → "Letters Testamentary"
  */
