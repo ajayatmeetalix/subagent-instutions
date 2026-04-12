@@ -769,8 +769,8 @@ export default function EstateManagementPage() {
       id: "862831cb-8e8d-44b5-bde5-03583031d3cb",
       shortId: "862831cb-8e8d-...",
       name: "Microsoft Zune",
-      executors: ["Click Me!"],
-      highlight: true,
+      executors: ["Darth Vader"],
+      highlight: false,
       status: "Active",
       createdAt: "12/18/2025",
       assignedTo: "None assigned",
@@ -5121,7 +5121,7 @@ export default function EstateManagementPage() {
                         {estates.map((estate) => (
                           <tr 
                             key={estate.id}
-                            className={`border-b border-[#f0f0f0] transition-colors ${estate.highlight ? "bg-red-100 hover:bg-red-200" : "hover:bg-[#fafafa]"}`}
+                            className={`border-b border-[#f0f0f0] transition-colors hover:bg-[#fafafa]`}
                           >
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
@@ -5213,7 +5213,7 @@ export default function EstateManagementPage() {
                 {estates.map((estate, index) => (
                   <tr 
                     key={estate.id} 
-                    className={`border-b border-[#f0f0f0] cursor-pointer ${estate.highlight ? "bg-red-100 hover:bg-red-200" : "hover:bg-[#fafafa]"}`}
+                    className={`border-b border-[#f0f0f0] cursor-pointer hover:bg-[#fafafa]`}
                     onClick={() => setSelectedEstate(estate)}
                   >
                     <td className="px-4 py-3">
@@ -5246,7 +5246,7 @@ export default function EstateManagementPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
+                      <span className={`inline-block w-20 text-center text-xs px-2 py-0.5 rounded-full border font-medium ${
                         estate.status === "Active"
                           ? "bg-green-50 text-green-700 border-green-200"
                           : estate.status === "Completed"
