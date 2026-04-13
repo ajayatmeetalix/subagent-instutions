@@ -13,6 +13,7 @@ This is a prototype. There is no full backend.
 | **UI Library** | shadcn/ui — `Button` (`components/ui/button.tsx`) and `Input` (`components/ui/input.tsx`) |
 | **Icons** | Lucide React |
 | **State** | React `useState` + URL params (`useSearchParams` / `useRouter` from `next/navigation`) |
+| **Package manager** | npm |
 | **Dev server** | `npx next dev` |
 
 **Color palette:**
