@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useState } from "react"
-import { Search, ChevronDown, ChevronUp, Check, ArrowLeft } from "lucide-react"
+import { Search, ChevronDown, ChevronUp, Check, ArrowLeft, Building2 } from "lucide-react"
 import * as Select from "@radix-ui/react-select"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -80,6 +80,14 @@ export function ResearchFilters({ jurisdictionData, searchParams, setParam, setP
       >
         <ArrowLeft size={15} />
         <span className="whitespace-nowrap">Estate Manager</span>
+      </a>
+      <div className="w-px h-5 bg-[#e5e5e5]" />
+      <a
+        href="/institution-guide"
+        className="flex items-center gap-1.5 text-sm text-[#6b675f] hover:text-[#1a1a2e] transition-colors"
+      >
+        <Building2 size={15} />
+        <span className="whitespace-nowrap">Institution Guide</span>
       </a>
       <div className="w-px h-5 bg-[#e5e5e5]" />
       {/* Search */}

@@ -2059,6 +2059,14 @@ export default function EstateManagementPage() {
               >
                 <Map className="w-[18px] h-[18px] flex-shrink-0" />
                 <span className="text-[13px] whitespace-nowrap">Probate Research</span>
+              </a>
+              <a
+                href="/institution-guide"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md transition-colors text-[#6b675f] hover:bg-[#ececec] hover:text-[#3d3d3d]"
+                title="Institution Guide"
+              >
+                <Building2 className="w-[18px] h-[18px] flex-shrink-0" />
+                <span className="text-[13px] whitespace-nowrap">Institution Guide</span>
                 <span className="ml-auto text-[9px] font-semibold text-[#7c6fc4] bg-purple-50 border border-purple-200 rounded px-1 py-0.5 leading-tight">NEW</span>
               </a>
             </nav>
@@ -5011,6 +5019,14 @@ export default function EstateManagementPage() {
             >
               <Map className="w-[18px] h-[18px] flex-shrink-0" />
               <span className="text-[13px] whitespace-nowrap">Probate Research</span>
+            </a>
+            <a
+              href="/institution-guide"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md transition-colors text-[#6b675f] hover:bg-[#ececec] hover:text-[#3d3d3d]"
+              title="Institution Guide"
+            >
+              <Building2 className="w-[18px] h-[18px] flex-shrink-0" />
+              <span className="text-[13px] whitespace-nowrap">Institution Guide</span>
               <span className="ml-auto text-[9px] font-semibold text-[#7c6fc4] bg-purple-50 border border-purple-200 rounded px-1 py-0.5 leading-tight">NEW</span>
             </a>
           </nav>
