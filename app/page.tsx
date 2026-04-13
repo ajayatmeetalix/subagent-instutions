@@ -867,7 +867,7 @@ export default function EstateManagementPage() {
     {
       id: "43e4107b-9320-...",
       shortId: "43e4107b-9320-...",
-      name: "Afterrevert Boxintegration",
+      name: "AfterEvert BoxIntegration",
       executors: [],
       status: "Active",
       createdAt: "12/02/2025",
